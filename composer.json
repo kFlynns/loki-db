@@ -2,10 +2,11 @@
     "name": "ecalov/loki-db",
     "description": "Loki database library",
     "type": "library",
+    "license": "MIT",
     "authors": [
         {
             "name": "Erik Calov",
-            "email": "e.calov@geiger-edelmetalle.de"
+            "email": "ecalov@quokkabyte.org"
         }
     ],
     "autoload": {
