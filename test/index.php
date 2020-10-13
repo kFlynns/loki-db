@@ -2,14 +2,14 @@
 
 use LokiDb\Db;
 use LokiDb\Table\FieldDefinition;
-use LokiDb\Table\Table;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$lokiDb = new Db(__DIR__ . '/test_db');
-$table = new Table('users');
 
-$table->addDefinition([
+$lokiDb = new Db(__DIR__ . '/test_db');
+
+
+$lokiDb->createTable('users', [
     new FieldDefinition(
         'user_name',
         FieldDefinition::DATA_TYPE_STRING,
@@ -29,20 +29,15 @@ $table->addDefinition([
         FieldDefinition::DATA_TYPE_BOOL
     )
 ]);
-$lokiDb->registerTable($table);
-
-
 
 
 $lokiDb->beginTransaction();
 
-
-$lokiDb->insert('users', [
-    'user_name' => 'testuser',
-    'email' => 'testuser@domain.tld',
-    'age' => 18,
-    'is_active' => true
-]);
+$lokiDb
+    ->createQuery()
+    ->select(['user_name', 'email'])
+    ->from('users')
+    ->execute();
 
 
 $lokiDb->commit();

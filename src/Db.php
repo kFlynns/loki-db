@@ -2,6 +2,7 @@
 
 namespace LokiDb;
 
+use LokiDb\Query\Query;
 use LokiDb\Table\Table;
 
 /**
@@ -17,6 +18,7 @@ class Db
     /** @var array[Table] */
     private $tables = [];
 
+    /** @var null|array  */
     private $transactions = null;
 
     /**
@@ -35,14 +37,29 @@ class Db
     }
 
     /**
-     * @param Table $table
+     * @return Query
+     */
+    public function createQuery() : Query
+    {
+        return Query::create($this);
+    }
+
+
+    /**
+     * @param string $tableName
+     * @param array[Fielddefinition] $fieldDefinitions
      * @throws \Exception
      */
-    public function registerTable(Table $table)
+    public function createTable($tableName, array $fieldDefinitions)
     {
+        $table = Table::create($tableName);
+        $table->addDefinition($fieldDefinitions);
         $this->tables[$table->getHash()] = $table;
-        $table->connectToDisk($this->databaseFolder);
+        $table->connectToDisk(
+            $this->databaseFolder
+        );
     }
+
 
     /**
      * @throws \Exception
@@ -78,16 +95,23 @@ class Db
     }
 
 
+
+
+
+
+
+
+
     /**
      * @param string $tableName
      * @param array $row
-     */
+
     public function insert($tableName, array $row)
     {
 
         $hash = hash('md5', $tableName);
 
-        /** @var Table $table */
+        /** @var Table $table
         $table = $this->tables[$hash];
         $table->setDataRow($row);
 
@@ -99,6 +123,6 @@ class Db
         $this->transactions[] = $hash;
 
     }
-
+        */
 
 }

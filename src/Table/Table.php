@@ -8,7 +8,7 @@ use GuzzleHttp\Psr7\Stream;
  * Class Table
  * @package LokiDb\Table
  */
-class Table
+class Table implements ITable
 {
 
     /** @var Stream */
@@ -32,20 +32,30 @@ class Table
 
     /**
      * Table constructor.
-     * @param string $name
      */
-    public function __construct($name)
+    private function __construct() {}
+
+
+    /**
+     * @param string $tableName
+     * @return ITable
+     */
+    static public function create($tableName) : ITable
     {
-        $this->name = $name;
-        $this->hash = hash('md5', $name);
-        $this->diskFilePath = implode(
+        $table = new self();
+        $table->name = $tableName;
+        $table->hash = hash('md5', $table->name);
+        $table->diskFilePath = implode(
                 '/',
                 str_split(
-                    $this->hash,
+                    $table->hash,
                     2
                 )
-            ) . '/' . $this->hash . '.lki';
+            ) . '/lki';
+
+        return $table;
     }
+
 
     /**
      *
@@ -101,6 +111,12 @@ class Table
         /** @var FieldDefinition $fieldDefinition */
         foreach ($fieldDefinitions as $fieldDefinition)
         {
+
+            if(!is_a($fieldDefinition, FieldDefinition::class))
+            {
+                throw new \Exception('Error while setting field definitions for table "' . $this->name . '", given object was not a FieldDefinition.');
+            }
+
             $this->fields[$fieldDefinition->getName()] = new Field(
                 $fieldDefinition->getName(),
                 $fieldDefinition->getDataType(),
@@ -127,13 +143,17 @@ class Table
                 true
             );
             touch($path);
+            touch($path . '.idx');
+            touch($path . '.jnl');
+            chmod($path, 0600);
+            chmod($path . '.idx', 0600);
+            chmod($path . '.jnl', 0600);
         }
 
         if(!is_writable($path))
         {
             throw new \Exception('Could not write table to disk under: "' . $path . '".');
         }
-        chmod($path, 0600);
 
         $this->stream = new Stream(
             fopen($path, 'w')
