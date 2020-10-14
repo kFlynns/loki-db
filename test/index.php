@@ -9,7 +9,11 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 $lokiDb = new Db(__DIR__ . '/test_db');
 
-$table = new TableDefinition('users', []);
+$table = new TableDefinition(
+    'users',
+    []
+);
+
 $table->addField(
         'user_name',
         FieldDefinition::DATA_TYPE_STRING,
@@ -29,11 +33,6 @@ $table->addField(
 $lokiDb->createTable($table);
 
 
-$lokiDb->beginTransaction();
-
-//$lokiDb->createQuery()->insert(['user_name' => 'asd'])->into('users')->execute();
-
-
 $result = $lokiDb
     ->createQuery()
     ->select()
@@ -42,22 +41,23 @@ $result = $lokiDb
 
 print_r($result);
 
+
+
 /*
-$lokiDb
-    ->createQuery()
-    ->insert([
-        'user_name' => 'janet',
-        'email' => 'janet@domain.tld',
-        'age' => 29,
-        'is_active' => 0,
-    ])
-    ->into('users')
-    ->execute();
+for($i = 0; $i < 100; $i++)
+{
+    $lokiDb
+        ->createQuery()
+        ->insert([
+            'user_name' => 'janet',
+            'email' => 'janet@domain.tld',
+            'age' => 29,
+            'is_active' => false,
+        ])
+        ->into('users')
+        ->execute();
+}
 */
-
-
-$lokiDb->commit();
-
 
 
 

@@ -8,25 +8,6 @@ namespace LokiDb\Storage;
  */
 interface IField
 {
-
-    /**
-     * @param $value
-     * @param bool $binary
-     * @return mixed
-     */
-    public function write($value, $binary = false);
-
-    /**
-     * @param bool $binary
-     * @return mixed
-     */
-    public function read($binary = false);
-
-    /**
-     *
-     */
-    public function setNull() : void;
-
     /**
      * @return string
      */
@@ -36,5 +17,10 @@ interface IField
      * @return int
      */
     public function getByteLength() : int;
+
+    /**
+     * @return int
+     */
+    public function getDateType() : int;
 
 }

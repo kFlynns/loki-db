@@ -25,13 +25,17 @@ interface ITable
      */
     public function setDataRow(array $data) : void;
 
+    /**
+     * @return array
+     */
+    public function getDataRow() : array;
+
 
     /**
      * @param callable $callback
-     * @param array $fields
      * @param array|null $filter
      */
-    public function fetch(callable $callback, array $fields, array $filter = null) : void;
+    public function fetch(callable $callback, array $filter = null) : void;
 
     /**
      *

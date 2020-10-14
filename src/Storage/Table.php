@@ -27,6 +27,15 @@ class Table implements ITable
     private $rowLength = 0;
 
     /** @var string */
+    private $packDescriptor;
+
+    /** @var string */
+    private $unpackDescriptor;
+
+    /** @var string */
+    private $dataRow;
+
+    /** @var string */
     private $uId;
 
     /** @var string */
@@ -70,31 +79,40 @@ class Table implements ITable
      */
     public function setDataRow(array $data) : void
     {
-        foreach ($data as $key => $value)
+        $sortedRow = [];
+
+        /** @var IField $field */
+        foreach ($this->fields as $field)
         {
-            /** @var Field $field */
-            $field = $this->fields[$key] ?? null;
-            if(null === $field)
+            if(isset($data[$field->getName()]))
             {
-                throw new \Exception('Table "' . $this->name . '" has no field "' . $key . '".');
+                $sortedRow[] = $data[$field->getName()];
+                continue;
             }
-            $field->write($value);
+            $sortedRow[] = null;
         }
+
+        $this->dataRow = call_user_func_array (
+            'pack',
+            array_merge([
+                    $this->packDescriptor
+                ],
+                $sortedRow
+            )
+        );
+
     }
 
     /**
-     *
+     * @return array
      */
-    protected function getDataRow()
+    public function getDataRow() : array
     {
-        /** @var IField $field */
-        foreach ($this->fields as &$field)
-        {
-            $field->write(
-                $this->stream->read($field->getByteLength()),
-                true
-            );
-        }
+        $this->dataRow = $this->stream->read($this->rowLength);
+        return unpack(
+            $this->unpackDescriptor,
+            $this->dataRow
+        );
     }
 
 
@@ -103,35 +121,14 @@ class Table implements ITable
      * @param array $fields
      * @param array|null $filter
      */
-    public function fetch(callable $callback, array $fields, array $filter = null) : void
+    public function fetch(callable $callback, array $filter = null) : void
     {
-
         $this->stream->rewind();
         $offset = 0;
-
         do
         {
-
-            $this->getDataRow();
-            $row = [];
-
-            /** @var IField $field */
-            foreach ($this->fields as &$field)
-            {
-                $fieldName = $field->getName();
-                if(count($fields) === 0)
-                {
-                    $row[$fieldName] = $field->read();
-                    continue;
-                }
-                if(in_array($fieldName, $fields))
-                {
-                    $row[$fieldName] = $field->read();
-                    continue;
-                }
-            }
-
-            $callback($row);
+            $data = $this->getDataRow();
+            $callback($data);
             $this->stream->seek($offset += $this->rowLength);
 
         } while($this->stream->getSize() > $offset);
@@ -140,18 +137,10 @@ class Table implements ITable
 
     public function flush()
     {
-        /** @var Field $field */
-        foreach ($this->fields as $field)
-        {
-            $this->stream->write(
-                $field->read(true)
-            );
-        }
+        $this->stream->write($this->dataRow);
     }
 
-    /**
-     *
-     */
+
     public function eof() : void
     {
         $this->stream->eof();
@@ -187,14 +176,36 @@ class Table implements ITable
                 throw new \Exception('Error while setting field definitions for table "' . $this->name . '", given object was not a FieldDefinition.');
             }
 
-            $this->fields[$fieldDefinition->getName()] = new Field(
-                $fieldDefinition->getName(),
-                $fieldDefinition->getDataType(),
-                $fieldDefinition->getByteLength()
+            $name = $fieldDefinition->getName();
+            $dataType = $fieldDefinition->getDataType();
+            $byteLength = $fieldDefinition->getByteLength();
+
+            $this->fields[$name] = new Field(
+                $name,
+                $dataType,
+                $byteLength
             );
+
+            switch ($fieldDefinition->getDataType())
+            {
+                case FieldDefinition::DATA_TYPE_CHAR:
+                case FieldDefinition::DATA_TYPE_BOOL:
+                    $this->packDescriptor .= 'C1';
+                    $this->unpackDescriptor .= 'C1' . $name . '/';
+                    break;
+                case FieldDefinition::DATA_TYPE_INT:
+                    $this->packDescriptor .= 'i';
+                    $this->unpackDescriptor .= 'i' . $name . '/';
+                    break;
+                case FieldDefinition::DATA_TYPE_STRING:
+                    $this->packDescriptor .= 'Z' . $byteLength;
+                    $this->unpackDescriptor .= 'Z' . $byteLength . $name . '/';
+            }
 
             $this->rowLength += (int)$fieldDefinition->getByteLength();
         }
+        $this->unpackDescriptor =  rtrim($this->unpackDescriptor, '/');
+
     }
 
     /**

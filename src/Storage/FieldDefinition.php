@@ -14,7 +14,7 @@ class FieldDefinition
     const DATA_TYPE_INT = 0x2;
     const DATA_TYPE_STRING = 0x3;
 
-    const INTEGER_SIZE = 8;
+    const INTEGER_SIZE = 4;
 
     /** @var string  */
     private $name;
@@ -41,7 +41,7 @@ class FieldDefinition
 
         $this->name = $name;
         $this->dataType = $dataType;
-        $byteLength = ($dataType === self::DATA_TYPE_INT) ? 8 : $byteLength;
+        $byteLength = ($dataType === self::DATA_TYPE_INT) ? self::INTEGER_SIZE : $byteLength;
         $byteLength = ($dataType === self::DATA_TYPE_BOOL) ? 1 : $byteLength;
         $byteLength = ($dataType === self::DATA_TYPE_CHAR) ? 1 : $byteLength;
         $this->byteLength = $byteLength;
