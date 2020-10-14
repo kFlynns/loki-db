@@ -18,7 +18,30 @@ interface ITable
     /**
      * @return string
      */
-    public function getHash() : string;
+    public function getUId() : string;
+
+    /**
+     * @param array $data
+     */
+    public function setDataRow(array $data) : void;
+
+
+    /**
+     * @param callable $callback
+     * @param array $fields
+     * @param array|null $filter
+     */
+    public function fetch(callable $callback, array $fields, array $filter = null) : void;
+
+    /**
+     *
+     */
+    public function eof() : void;
+
+    /**
+     * @return array
+     */
+    public function getFields() : array;
 
     /**
      * @param array[FieldDefinition] $fieldDefinitions

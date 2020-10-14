@@ -2,9 +2,9 @@
 
 namespace LokiDb;
 
+use LokiDb\Exception\QueryMissingSegmentException;
 use LokiDb\Query\Query;
 use LokiDb\Storage\ITable;
-use LokiDb\Storage\Table;
 use LokiDb\Storage\TableDefinition;
 
 /**
@@ -53,9 +53,9 @@ class Db
      */
     public function createTable(TableDefinition $tableDefinition) : ITable
     {
-        $table = Table::create($tableDefinition->getName());
+        $table = Storage\Table::create($tableDefinition->getName());
         $table->addDefinition($tableDefinition->getFieldDefinitions());
-        $this->tables[$table->getHash()] = $table;
+        $this->tables[$table->getUId()] = $table;
         $table->connectToDisk(
             $this->databaseFolder
         );
@@ -104,41 +104,49 @@ class Db
      */
     public function runQuery(Query $query) : array
     {
+
+        $result = [];
+
         switch($query->getMode())
         {
             case Query::MODE_INSERT:
+
+                $insert = $query->getSegment(Query::SEGMENT_INSERT);
+                $into = $query->getSegment(Query::SEGMENT_INTO);
+
+                if(null === $into)
+                {
+                    throw new QueryMissingSegmentException();
+                }
+
+                /** @var ITable $table */
+                $table = $this->tables[$into];
+                $table->eof();
+                $table->setDataRow($insert);
+                $table->flush();
+
+                break;
+
+            case Query::MODE_SELECT:
+
+                $select = $query->getSegment(Query::SEGMENT_SELECT);
+                $from = $query->getSegment(Query::SEGMENT_FROM);
+
+                if(null === $from)
+                {
+                    throw new QueryMissingSegmentException();
+                }
+
+                /** @var ITable $table */
+                $table = $this->tables[$from];
+                $table->fetch(function(array $row) use (&$result) {
+                    $result[] = $row;
+                }, $select);
                 break;
         }
 
-
-        return [];
+        return $result;
     }
 
-
-
-
-
-    /**
-     * @param string $tableName
-     * @param array $row
-
-    public function insert($tableName, array $row)
-    {
-
-        $hash = hash('md5', $tableName);
-
-        /** @var Table $table
-        $table = $this->tables[$hash];
-        $table->setDataRow($row);
-
-        if(null === $this->transactions)
-        {
-            $table->flush();
-            return;
-        }
-        $this->transactions[] = $hash;
-
-    }
-        */
 
 }

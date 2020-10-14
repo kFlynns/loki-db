@@ -31,16 +31,30 @@ $lokiDb->createTable($table);
 
 $lokiDb->beginTransaction();
 
+//$lokiDb->createQuery()->insert(['user_name' => 'asd'])->into('users')->execute();
+
+
+$result = $lokiDb
+    ->createQuery()
+    ->select()
+    ->from('users')
+    ->execute();
+
+print_r($result);
+
+/*
 $lokiDb
     ->createQuery()
     ->insert([
-        'user_name' => 'karl123',
-        'email' => 'karl@domain.tld',
-        'age' => 19,
-        'is_active' => 1,
+        'user_name' => 'janet',
+        'email' => 'janet@domain.tld',
+        'age' => 29,
+        'is_active' => 0,
     ])
     ->into('users')
     ->execute();
+*/
+
 
 $lokiDb->commit();
 

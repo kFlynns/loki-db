@@ -34,15 +34,33 @@ class Field implements IField
     }
 
     /**
-     * todo: charsets...
-     * @param null $value
-     * @return mixed|null
+     * @param $value
+     * @param bool $binary
      */
-    public function write($value)
+    public function write($value, $binary = false)
     {
 
-        $inDataType = strtolower((gettype($value)));
+        if($binary)
+        {
+            switch($this->dataType)
+            {
+                case FieldDefinition::DATA_TYPE_CHAR:
+                    $this->value = unpack('Cc', $value)['c'];
+                    break;
+                case FieldDefinition::DATA_TYPE_BOOL:
+                    $this->value = !!unpack('Cc', $value)['c'];
+                    break;
+                case FieldDefinition::DATA_TYPE_INT:
+                    $this->value = unpack('Ji', $value)['i'];
+                    break;
+                case FieldDefinition::DATA_TYPE_STRING:
+                    $this->value = trim($value, chr(0));
+                    break;
+            }
+            return;
+        }
 
+        $inDataType = strtolower((gettype($value)));
         switch ($this->dataType)
         {
             case FieldDefinition::DATA_TYPE_CHAR:
@@ -67,25 +85,23 @@ class Field implements IField
                 break;
 
             case FieldDefinition::DATA_TYPE_INT:
-                $this->value = intval($value);
+                $this->value = intval(trim($value));
                 break;
 
             case FieldDefinition::DATA_TYPE_STRING:
-                $this->value = (string)$value;
+                $this->value = (string)trim($value);
                 break;
 
         }
-
-        return $this->value;
 
     }
 
     /**
      * @param bool $binary
-     * @return string
+     * @return mixed
      * @throws \Exception
      */
-    public function read($binary = false) : string
+    public function read($binary = false)
     {
         if(!$binary)
         {
@@ -99,11 +115,10 @@ class Field implements IField
             case FieldDefinition::DATA_TYPE_CHAR:
                 return pack('C', ord($this->value));
             case FieldDefinition::DATA_TYPE_INT:
-                return pack('q', $this->value);
+                return pack('J', $this->value);
             case FieldDefinition::DATA_TYPE_STRING:
                 return pack('a' . (string)$this->byteLength, $this->value);
         }
-
         throw new \Exception('Can not pack field value.');
 
     }
@@ -112,5 +127,22 @@ class Field implements IField
     {
         $this->value = null;
     }
+
+    /**
+     * @return string
+     */
+    public function getName() : string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return int
+     */
+    public function getByteLength(): int
+    {
+        return $this->byteLength;
+    }
+
 
 }

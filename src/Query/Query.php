@@ -59,12 +59,12 @@ class Query
     }
 
     /**
-     * @param array[string] $fields
+     * @param array|null $fields
      * @return $this
      */
-    public function select(array $fields) : Query
+    public function select(array $fields = null) : Query
     {
-        $this->segments[self::SEGMENT_SELECT] = $fields;
+        $this->segments[self::SEGMENT_SELECT] = $fields ? $fields : [];
         return $this;
     }
 
@@ -144,5 +144,13 @@ class Query
         return $this->mode;
     }
 
+    /**
+     * @param int $segment
+     * @return mixed|null
+     */
+    public function getSegment($segment)
+    {
+        return $this->segments[$segment] ?? null;
+    }
 
 }

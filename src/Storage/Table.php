@@ -27,11 +27,10 @@ class Table implements ITable
     private $rowLength = 0;
 
     /** @var string */
-    private $hash;
+    private $uId;
 
     /** @var string */
     private $diskFilePath;
-
 
     /**
      * Table constructor.
@@ -47,18 +46,16 @@ class Table implements ITable
     {
         $table = new self();
         $table->name = $tableName;
-        $table->hash = hash('md5', $table->name);
+        $table->uId = hash('md5', $table->name);
         $table->diskFilePath = implode(
                 '/',
                 str_split(
-                    $table->hash,
+                    $table->uId,
                     2
                 )
             ) . '/lki';
-
         return $table;
     }
-
 
     /**
      *
@@ -71,7 +68,7 @@ class Table implements ITable
     /**
      * @param array[array] $data
      */
-    public function setDataRow(array $data)
+    public function setDataRow(array $data) : void
     {
         foreach ($data as $key => $value)
         {
@@ -85,9 +82,64 @@ class Table implements ITable
         }
     }
 
+    /**
+     *
+     */
+    protected function getDataRow()
+    {
+        /** @var IField $field */
+        foreach ($this->fields as &$field)
+        {
+            $field->write(
+                $this->stream->read($field->getByteLength()),
+                true
+            );
+        }
+    }
+
+
+    /**
+     * @param callable $callback
+     * @param array $fields
+     * @param array|null $filter
+     */
+    public function fetch(callable $callback, array $fields, array $filter = null) : void
+    {
+
+        $this->stream->rewind();
+        $offset = 0;
+
+        do
+        {
+
+            $this->getDataRow();
+            $row = [];
+
+            /** @var IField $field */
+            foreach ($this->fields as &$field)
+            {
+                $fieldName = $field->getName();
+                if(count($fields) === 0)
+                {
+                    $row[$fieldName] = $field->read();
+                    continue;
+                }
+                if(in_array($fieldName, $fields))
+                {
+                    $row[$fieldName] = $field->read();
+                    continue;
+                }
+            }
+
+            $callback($row);
+            $this->stream->seek($offset += $this->rowLength);
+
+        } while($this->stream->getSize() > $offset);
+    }
+
 
     public function flush()
-    {;
+    {
         /** @var Field $field */
         foreach ($this->fields as $field)
         {
@@ -97,13 +149,28 @@ class Table implements ITable
         }
     }
 
+    /**
+     *
+     */
+    public function eof() : void
+    {
+        $this->stream->eof();
+    }
 
     /**
      * @return string
      */
-    public function getHash() : string
+    public function getUId() : string
     {
-        return $this->hash;
+        return $this->uId;
+    }
+
+    /**
+     * @return array[Fields]
+     */
+    public function getFields() : array
+    {
+        return $this->fields;
     }
 
     /**
@@ -159,14 +226,11 @@ class Table implements ITable
             throw new \Exception('Could not write table to disk under: "' . $path . '".');
         }
 
-        $this->fileResource = fopen($path, 'w');
-        $this->lock();
+        $this->fileResource = fopen($path, 'a+');
         $this->stream = new Stream(
             $this->fileResource
         );
         $this->stream->eof();
-
-
     }
 
 
