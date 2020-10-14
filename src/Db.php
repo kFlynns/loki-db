@@ -3,7 +3,9 @@
 namespace LokiDb;
 
 use LokiDb\Query\Query;
-use LokiDb\Table\Table;
+use LokiDb\Storage\ITable;
+use LokiDb\Storage\Table;
+use LokiDb\Storage\TableDefinition;
 
 /**
  * Class Db
@@ -46,18 +48,18 @@ class Db
 
 
     /**
-     * @param string $tableName
-     * @param array[Fielddefinition] $fieldDefinitions
-     * @throws \Exception
+     * @param TableDefinition $tableDefinition
+     * @return ITable
      */
-    public function createTable($tableName, array $fieldDefinitions)
+    public function createTable(TableDefinition $tableDefinition) : ITable
     {
-        $table = Table::create($tableName);
-        $table->addDefinition($fieldDefinitions);
+        $table = Table::create($tableDefinition->getName());
+        $table->addDefinition($tableDefinition->getFieldDefinitions());
         $this->tables[$table->getHash()] = $table;
         $table->connectToDisk(
             $this->databaseFolder
         );
+        return $table;
     }
 
 
@@ -95,8 +97,22 @@ class Db
     }
 
 
+    /**
+     * @param Query $query
+     * @return array
+     *
+     */
+    public function runQuery(Query $query) : array
+    {
+        switch($query->getMode())
+        {
+            case Query::MODE_INSERT:
+                break;
+        }
 
 
+        return [];
+    }
 
 
 

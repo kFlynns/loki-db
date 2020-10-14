@@ -1,6 +1,6 @@
 <?php
 
-namespace LokiDb\Table;
+namespace LokiDb\Storage;
 
 /**
  * Class FieldDefinition

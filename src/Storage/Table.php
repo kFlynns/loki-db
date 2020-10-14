@@ -1,6 +1,6 @@
 <?php
 
-namespace LokiDb\Table;
+namespace LokiDb\Storage;
 
 use GuzzleHttp\Psr7\Stream;
 
@@ -13,6 +13,9 @@ class Table implements ITable
 
     /** @var Stream */
     private $stream;
+
+    /** @var resource */
+    private $fileResource;
 
     /** @var array[Field]  */
     private $fields = [];
@@ -135,6 +138,7 @@ class Table implements ITable
     {
 
         $path = rtrim($databaseFolder, '/\\') . '/' . $this->diskFilePath;
+
         if(!is_writable($path))
         {
             mkdir(
@@ -155,11 +159,25 @@ class Table implements ITable
             throw new \Exception('Could not write table to disk under: "' . $path . '".');
         }
 
+        $this->fileResource = fopen($path, 'w');
+        $this->lock();
         $this->stream = new Stream(
-            fopen($path, 'w')
+            $this->fileResource
         );
-        $this->stream->rewind();
+        $this->stream->eof();
 
+
+    }
+
+
+    public function lock()
+    {
+        flock($this->fileResource, LOCK_EX);
+    }
+
+    public function unlock()
+    {
+        flock($this->fileResource, LOCK_UN);
     }
 
 }

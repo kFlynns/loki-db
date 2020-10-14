@@ -1,12 +1,12 @@
 <?php
 
-namespace LokiDb\Table;
+namespace LokiDb\Storage;
 
 /**
  * Class Field
  * @package LokiDb\Table
  */
-class Field
+class Field implements IField
 {
 
     /** @var mixed */
