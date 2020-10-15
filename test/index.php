@@ -7,6 +7,9 @@ use LokiDb\Storage\TableDefinition;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 
+
+
+
 $lokiDb = new Db(__DIR__ . '/test_db');
 
 $table = new TableDefinition(
@@ -32,7 +35,7 @@ $table->addField(
 
 $lokiDb->createTable($table);
 
-
+/*
 $result = $lokiDb
     ->createQuery()
     ->select()
@@ -40,10 +43,13 @@ $result = $lokiDb
     ->execute();
 
 print_r($result);
+*/
 
 
 
-/*
+$lokiDb->beginTransaction();
+
+
 for($i = 0; $i < 100; $i++)
 {
     $lokiDb
@@ -57,9 +63,8 @@ for($i = 0; $i < 100; $i++)
         ->into('users')
         ->execute();
 }
-*/
 
-
+$lokiDb->commit();
 
 
 

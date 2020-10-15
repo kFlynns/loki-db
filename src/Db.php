@@ -20,8 +20,8 @@ class Db
     /** @var array[Table] */
     private $tables = [];
 
-    /** @var null|array  */
-    private $transactions = null;
+    /** @var TransactionManager  */
+    private $transactionManager;
 
     /**
      * Db constructor.
@@ -33,9 +33,18 @@ class Db
         if(is_dir($databaseFolder))
         {
             $this->databaseFolder = $databaseFolder;
+            $this->transactionManager = new TransactionManager();
             return;
         }
         throw new \Exception('Folder "' . $databaseFolder . '" is invalid.');
+    }
+
+    /**
+     * flush tables beside transactions
+     */
+    public function __destruct()
+    {
+        $this->transactionManager->autoCommit();
     }
 
     /**
@@ -45,7 +54,6 @@ class Db
     {
         return Query::create($this);
     }
-
 
     /**
      * @param TableDefinition $tableDefinition
@@ -68,34 +76,66 @@ class Db
      */
     public function beginTransaction()
     {
-        if(null !== $this->transactions)
-        {
-            throw new \Exception('Transaction can\'t be started because an existing one.');
-        }
-        $this->transactions = [];
+        $this->transactionManager->start();
     }
 
     /**
-     *
+     * flush all table journals to disk
      */
     public function commit()
     {
-        if(null !== $this->transactions)
-        {
-            foreach ($this->transactions as $transaction)
-            {
-                $this->tables[$transaction]->flush();
-            }
-        }
-        $this->transactions = null;
+        $this->transactionManager->commit();
     }
 
-
+    /**
+     * flush all table journals to void
+     */
     public function rollBack()
     {
-        $this->transactions = null;
+        $this->transactionManager->commit(true);
     }
 
+    /**
+     * @param Query $query
+     * @throws QueryMissingSegmentException
+     */
+    protected function runSelect(Query $query)
+    {
+        $select = $query->getSegment(Query::SEGMENT_SELECT);
+        $from = $query->getSegment(Query::SEGMENT_FROM);
+
+        if(null === $from)
+        {
+            throw new QueryMissingSegmentException();
+        }
+
+        /** @var ITable $table */
+        $table = $this->tables[$from];
+        $table->fetch(function(array $row) use (&$result) {
+            $result[] = $row;
+        }, $select);
+    }
+
+    /**
+     * @param Query $query
+     * @throws QueryMissingSegmentException
+     */
+    protected function runInsert(Query $query)
+    {
+        $insert = $query->getSegment(Query::SEGMENT_INSERT);
+        $into = $query->getSegment(Query::SEGMENT_INTO);
+
+        if(null === $into)
+        {
+            throw new QueryMissingSegmentException();
+        }
+
+        /** @var ITable $table */
+        $table = $this->tables[$into];
+        $this->transactionManager->addTable($table);
+        $table->eof();
+        $table->setDataRow($insert);
+    }
 
     /**
      * @param Query $query
@@ -104,48 +144,7 @@ class Db
      */
     public function runQuery(Query $query) : array
     {
-
-        $result = [];
-
-        switch($query->getMode())
-        {
-            case Query::MODE_INSERT:
-
-                $insert = $query->getSegment(Query::SEGMENT_INSERT);
-                $into = $query->getSegment(Query::SEGMENT_INTO);
-
-                if(null === $into)
-                {
-                    throw new QueryMissingSegmentException();
-                }
-
-                /** @var ITable $table */
-                $table = $this->tables[$into];
-                $table->eof();
-                $table->setDataRow($insert);
-                $table->flush();
-
-                break;
-
-            case Query::MODE_SELECT:
-
-                $select = $query->getSegment(Query::SEGMENT_SELECT);
-                $from = $query->getSegment(Query::SEGMENT_FROM);
-
-                if(null === $from)
-                {
-                    throw new QueryMissingSegmentException();
-                }
-
-                /** @var ITable $table */
-                $table = $this->tables[$from];
-                $table->fetch(function(array $row) use (&$result) {
-                    $result[] = $row;
-                }, $select);
-                break;
-        }
-
-        return $result;
+        return $this->{'run' . ucfirst($query->getMode())}($query) ?? [];
     }
 
 

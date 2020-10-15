@@ -13,6 +13,7 @@
         "psr-4": {"LokiDb\\": "src/"}
     },
     "require": {
-        "guzzlehttp/psr7": "*"
+        "guzzlehttp/psr7": "*",
+        "ninsuo/php-shared-memory": "dev-master"
     }
 }

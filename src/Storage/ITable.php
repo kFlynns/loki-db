@@ -30,6 +30,10 @@ interface ITable
      */
     public function getDataRow() : array;
 
+    /**
+     * @param bool $intoVoid
+     */
+    public function flush($intoVoid = false) : void;
 
     /**
      * @param callable $callback

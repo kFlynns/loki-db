@@ -13,6 +13,10 @@ class FieldDefinition
     const DATA_TYPE_BOOL = 0x1;
     const DATA_TYPE_INT = 0x2;
     const DATA_TYPE_STRING = 0x3;
+    const DATA_TYPE_FLOAT = 0x4;
+
+    const DATA_TYPE_DATE = 0x10;
+    const DATA_TYPE_DATETIME = 0x11;
 
     const INTEGER_SIZE = 4;
 
@@ -34,16 +38,39 @@ class FieldDefinition
      */
     public function __construct($name, $dataType, $byteLength = 1)
     {
-        if($dataType < self::DATA_TYPE_CHAR || $dataType > self::DATA_TYPE_STRING)
+
+        switch ($dataType)
         {
-            throw new \Exception('The datatype "' . $dataType . '" is unknown.');
+            case self::DATA_TYPE_CHAR:
+            case self::DATA_TYPE_BOOL:
+                $byteLength = 1;
+                break;
+
+            case self::DATA_TYPE_INT:
+                $byteLength = self::INTEGER_SIZE;
+                break;
+
+            case self::DATA_TYPE_STRING:
+                break;
+
+            case self::DATA_TYPE_FLOAT:
+                break;
+
+            case self::DATA_TYPE_DATE:
+                $byteLength = 10;
+                break;
+
+            case self::DATA_TYPE_DATETIME:
+                $byteLength = 19;
+                break;
+
+            default:
+                throw new \Exception('sxd');
+
         }
 
         $this->name = $name;
         $this->dataType = $dataType;
-        $byteLength = ($dataType === self::DATA_TYPE_INT) ? self::INTEGER_SIZE : $byteLength;
-        $byteLength = ($dataType === self::DATA_TYPE_BOOL) ? 1 : $byteLength;
-        $byteLength = ($dataType === self::DATA_TYPE_CHAR) ? 1 : $byteLength;
         $this->byteLength = $byteLength;
 
     }

@@ -41,6 +41,12 @@ class Table implements ITable
     /** @var string */
     private $diskFilePath;
 
+    /** @var int */
+    private $datasetPointer;
+
+    /** @var array */
+    private $journal = [];
+
     /**
      * Table constructor.
      */
@@ -101,6 +107,8 @@ class Table implements ITable
             )
         );
 
+        $this->journal[$this->datasetPointer] = $this->dataRow;
+
     }
 
     /**
@@ -124,26 +132,50 @@ class Table implements ITable
     public function fetch(callable $callback, array $filter = null) : void
     {
         $this->stream->rewind();
-        $offset = 0;
+        $this->datasetPointer = 0;
         do
         {
             $data = $this->getDataRow();
             $callback($data);
-            $this->stream->seek($offset += $this->rowLength);
-
-        } while($this->stream->getSize() > $offset);
+            $this->stream->seek(
+                $this->datasetPointer += $this->rowLength
+            );
+        } while($this->stream->getSize() > $this->datasetPointer);
     }
 
-
-    public function flush()
+    /**
+     * lock table and flush journal to disk
+     */
+    public function flush($intoVoid = false) : void
     {
-        $this->stream->write($this->dataRow);
+        $this->lock();
+        if(!$intoVoid)
+        {
+            foreach ($this->journal as $datasetPointer => $dataRow)
+            {
+                $this->stream->seek($datasetPointer);
+                $this->stream->write($dataRow);
+            }
+        }
+        $this->journal = [];
+        $this->unlock();
     }
 
-
+    /**
+     *
+     */
     public function eof() : void
     {
         $this->stream->eof();
+        $this->datasetPointer = $this->stream->tell();
+        foreach (array_keys($this->journal) as $journalPointer)
+        {
+            if($this->datasetPointer < $journalPointer)
+            {
+                $this->datasetPointer = $journalPointer;
+            }
+        }
+
     }
 
     /**
@@ -204,6 +236,7 @@ class Table implements ITable
 
             $this->rowLength += (int)$fieldDefinition->getByteLength();
         }
+
         $this->unpackDescriptor =  rtrim($this->unpackDescriptor, '/');
 
     }
@@ -238,16 +271,19 @@ class Table implements ITable
         }
 
         $this->fileResource = fopen($path, 'a+');
-        $this->stream = new Stream(
-            $this->fileResource
-        );
-        $this->stream->eof();
+        $this->stream = new Stream($this->fileResource);
+        $this->stream->rewind();
+        $this->datasetPointer = 0;
+
     }
 
 
     public function lock()
     {
-        flock($this->fileResource, LOCK_EX);
+        flock(
+            $this->fileResource,
+            LOCK_EX | LOCK_SH
+        );
     }
 
     public function unlock()
