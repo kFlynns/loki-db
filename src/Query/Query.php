@@ -18,6 +18,7 @@ class Query
     const SEGMENT_FROM = 0x1;
     const SEGMENT_INSERT = 0x2;
     const SEGMENT_INTO = 0x3;
+    const SEGMENT_WHERE = 0x4;
 
     const MODE_SELECT = 'select';
     const MODE_INSERT = 'insert';
@@ -78,7 +79,6 @@ class Query
         return $this;
     }
 
-
     /**
      * @param array[array] $fields
      * @return $this
@@ -98,6 +98,30 @@ class Query
         $this->segments[self::SEGMENT_INTO] = hash('md5', $tableName);
         return $this;
     }
+
+    /**
+     * @param $filter
+     * @return $this
+     */
+    public function where($filter) : Query
+    {
+        $parseFilter = function() use ($filter) {
+            $parts = preg_split('/\s/', $filter);
+            $filter = [];
+            foreach ($parts as $part)
+            {
+                $part = trim($part);
+                if (!$part) {
+                    continue;
+                }
+                $filter[] = $part;
+            }
+            return $filter;
+        };
+        $this->segments[self::SEGMENT_WHERE] = $parseFilter();
+        return $this;
+    }
+
 
     /**
      * @return array

@@ -38,7 +38,7 @@ $lokiDb->createTable($table);
 
 
 //$lokiDb->beginTransaction();
-
+/*
 for($i = 0; $i < 1000000; $i++)
 {
     $lokiDb
@@ -52,7 +52,13 @@ for($i = 0; $i < 1000000; $i++)
         ->into('users')
         ->execute();
 }
+*/
 
+
+foreach ($lokiDb->createQuery()->select()->from('users')->where('age = 10')->execute() as $row)
+{
+
+}
 
 
 

@@ -135,6 +135,7 @@ class Table implements ITable
      */
     public function fetch(array $filter = null) : Generator
     {
+
         $tableLength = $this->getTableLength();
         $this->stream->rewind();
         $this->datasetPointer = 0;
@@ -142,22 +143,21 @@ class Table implements ITable
         {
             if(isset($this->journal[$this->datasetPointer]))
             {
-                $data = unpack(
+                yield unpack(
                     $this->unpackDescriptor,
                     $this->journal[$this->datasetPointer]
                 );
             }
             else
             {
-                $data = $this->getDataRow();
+                yield $this->getDataRow();
             }
-
-            yield $data;
             $this->stream->seek(
                 $this->datasetPointer += $this->rowLength
             );
 
-        } while($tableLength > $this->datasetPointer);
+        } while ($tableLength > $this->datasetPointer);
+
     }
 
     /**

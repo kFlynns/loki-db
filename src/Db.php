@@ -96,6 +96,7 @@ class Db
     {
         $select = $query->getSegment(Query::SEGMENT_SELECT);
         $from = $query->getSegment(Query::SEGMENT_FROM);
+        $where = $query->getSegment(Query::SEGMENT_WHERE);
 
         if(null === $from)
         {
@@ -104,7 +105,7 @@ class Db
 
         /** @var ITable $table */
         $table = $this->tables[$from];
-        return $table->fetch();
+        return $table->fetch($where);
 
     }
 
