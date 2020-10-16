@@ -163,7 +163,6 @@ class Table implements ITable
      */
     public function flush($intoVoid = false) : void
     {
-        $this->lock();
         if(!$intoVoid)
         {
             foreach ($this->journal as $datasetPointer => $dataRow)
@@ -173,7 +172,6 @@ class Table implements ITable
             }
         }
         $this->journal = [];
-        $this->unlock();
     }
 
     /**
@@ -306,12 +304,12 @@ class Table implements ITable
     }
 
 
-    public function lock()
+    public function lock() : void
     {
         flock($this->fileResource, LOCK_EX);
     }
 
-    public function unlock()
+    public function unlock() : void
     {
         flock($this->fileResource, LOCK_UN);
     }

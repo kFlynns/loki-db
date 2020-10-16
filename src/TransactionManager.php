@@ -4,6 +4,7 @@ namespace LokiDb;
 
 use LokiDb\Storage\ITable;
 
+
 /**
  * Class TransactionManager
  * @package LokiDb
@@ -27,6 +28,7 @@ class TransactionManager
             return;
         }
         $this->tables[$table->getUId()] = $table;
+        $table->lock();
     }
 
     /**
@@ -43,6 +45,11 @@ class TransactionManager
         foreach ($this->tables as $table)
         {
             $table->flush($intoVoid);
+        }
+        /** @var ITable $table */
+        foreach ($this->tables as $table)
+        {
+            $table->unlock();
         }
         $this->tables = [];
         $this->transactionStarted = false;
@@ -70,9 +77,12 @@ class TransactionManager
         {
             return;
         }
+        /** @var ITable $table */
         foreach ($this->tables as $table)
         {
+            $table->lock();
             $table->flush();
+            $table->unlock();
         }
     }
 

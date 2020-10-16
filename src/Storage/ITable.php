@@ -63,4 +63,14 @@ interface ITable
      */
     public function connectToDisk($databaseFolder);
 
+    /**
+     *
+     */
+    public function lock() : void;
+
+    /**
+     *
+     */
+    public function unlock() : void;
+
 }
