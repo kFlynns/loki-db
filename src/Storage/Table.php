@@ -11,10 +11,10 @@ use GuzzleHttp\Psr7\Stream;
 class Table implements ITable
 {
 
-    /** @var Stream */
+    /** @var Stream psr7 stream */
     private $stream;
 
-    /** @var resource */
+    /** @var resource file resource of table */
     private $fileResource;
 
     /** @var array[Field]  */
@@ -23,25 +23,25 @@ class Table implements ITable
     /** @var string */
     private $name;
 
-    /** @var int */
+    /** @var int length of binary row */
     private $rowLength = 0;
 
-    /** @var string */
+    /** @var string first argument for pack() */
     private $packDescriptor;
 
-    /** @var string */
+    /** @var string  first argument for unpack() */
     private $unpackDescriptor;
 
-    /** @var string */
+    /** @var string actual binary data row */
     private $dataRow;
 
-    /** @var string */
+    /** @var string hash of name for handling tables */
     private $uId;
 
     /** @var string */
     private $diskFilePath;
 
-    /** @var int */
+    /** @var int actual offset in the table */
     private $datasetPointer;
 
     /** @var array */
@@ -54,6 +54,8 @@ class Table implements ITable
 
 
     /**
+     *
+     *
      * @param string $tableName
      * @return ITable
      */
@@ -136,11 +138,23 @@ class Table implements ITable
         $this->datasetPointer = 0;
         do
         {
-            $data = $this->journal[$this->datasetPointer] ?? $this->getDataRow();
+            if(isset($this->journal[$this->datasetPointer]))
+            {
+                $data = unpack(
+                    $this->unpackDescriptor,
+                    $this->journal[$this->datasetPointer]
+                );
+            }
+            else
+            {
+                $data = $this->getDataRow();
+            }
+
             $callback($data);
             $this->stream->seek(
                 $this->datasetPointer += $this->rowLength
             );
+
         } while($tableLength > $this->datasetPointer);
     }
 
@@ -178,11 +192,10 @@ class Table implements ITable
 
 
     /**
-     *
+     * set pointer to the end of the table
      */
     public function eof() : void
     {
-        $this->stream->eof();
         $this->datasetPointer = $this->getTableLength();
     }
 
@@ -267,10 +280,8 @@ class Table implements ITable
             );
             touch($path);
             touch($path . '.idx');
-            touch($path . '.jnl');
             chmod($path, 0600);
             chmod($path . '.idx', 0600);
-            chmod($path . '.jnl', 0600);
         }
 
         if(!is_writable($path))
@@ -278,7 +289,16 @@ class Table implements ITable
             throw new \Exception('Could not write table to disk under: "' . $path . '".');
         }
 
-        $this->fileResource = fopen($path, 'a+');
+        // try in case file is locked
+        for($tries = 0; $tries < 1000000; $tries++)
+        {
+            $this->fileResource = fopen($path, 'r+');
+            if(is_resource($this->fileResource))
+            {
+                break;
+            }
+        }
+
         $this->stream = new Stream($this->fileResource);
         $this->stream->rewind();
         $this->datasetPointer = 0;
@@ -288,10 +308,7 @@ class Table implements ITable
 
     public function lock()
     {
-        flock(
-            $this->fileResource,
-            LOCK_EX | LOCK_SH
-        );
+        flock($this->fileResource, LOCK_EX);
     }
 
     public function unlock()

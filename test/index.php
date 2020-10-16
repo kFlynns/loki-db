@@ -35,16 +35,6 @@ $table->addField(
 
 $lokiDb->createTable($table);
 
-/*
-$result = $lokiDb
-    ->createQuery()
-    ->select()
-    ->from('users')
-    ->execute();
-
-print_r($result);
-*/
-
 
 
 $lokiDb->beginTransaction();
@@ -64,7 +54,20 @@ for($i = 0; $i < 100; $i++)
         ->execute();
 }
 
-$lokiDb->commit();
+
+
+$result = $lokiDb
+    ->createQuery()
+    ->select()
+    ->from('users')
+    ->execute();
+
+print_r($result);die();
+
+
+
+
+//$lokiDb->commit();
 
 
 

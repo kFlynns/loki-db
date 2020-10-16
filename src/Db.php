@@ -114,6 +114,9 @@ class Db
         $table->fetch(function(array $row) use (&$result) {
             $result[] = $row;
         }, $select);
+
+        return $result;
+
     }
 
     /**
