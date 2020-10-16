@@ -131,16 +131,17 @@ class Table implements ITable
      */
     public function fetch(callable $callback, array $filter = null) : void
     {
+        $tableLength = $this->getTableLength();
         $this->stream->rewind();
         $this->datasetPointer = 0;
         do
         {
-            $data = $this->getDataRow();
+            $data = $this->journal[$this->datasetPointer] ?? $this->getDataRow();
             $callback($data);
             $this->stream->seek(
                 $this->datasetPointer += $this->rowLength
             );
-        } while($this->stream->getSize() > $this->datasetPointer);
+        } while($tableLength > $this->datasetPointer);
     }
 
     /**
@@ -162,20 +163,27 @@ class Table implements ITable
     }
 
     /**
+     * @return int
+     */
+    private function getTableLength()
+    {
+        $length = $this->stream->getSize();
+        foreach ($this->journal as $datasetPointer => $ignore)
+        {
+            $datasetPointer += $this->rowLength;
+            $length = ($datasetPointer > $this->stream->getSize()) ? $datasetPointer : $length;
+        }
+        return (int)$length;
+    }
+
+
+    /**
      *
      */
     public function eof() : void
     {
         $this->stream->eof();
-        $this->datasetPointer = $this->stream->tell();
-        foreach (array_keys($this->journal) as $journalPointer)
-        {
-            if($this->datasetPointer < $journalPointer)
-            {
-                $this->datasetPointer = $journalPointer;
-            }
-        }
-
+        $this->datasetPointer = $this->getTableLength();
     }
 
     /**
