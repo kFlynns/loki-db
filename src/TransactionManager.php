@@ -18,6 +18,27 @@ class TransactionManager
     /** @var array[ITable] */
     private $tables = [];
 
+    /** @var null|TransactionManager */
+    private static $instance = null;
+
+    /**
+     * private due singleton
+     * TransactionManager constructor.
+     */
+    private function __construct() {}
+
+    /**
+     * @return TransactionManager|null
+     */
+    public static function getInstance()
+    {
+        if(null === self::$instance)
+        {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
     /**
      * @param ITable $table
      */
@@ -70,12 +91,13 @@ class TransactionManager
 
     /**
      * if no transaction is active but tables was changed
+     * @return bool
      */
-    public function autoCommit()
+    public function autoCommit() : bool
     {
         if(!(!$this->transactionStarted && count($this->tables) > 0))
         {
-            return;
+            return false;
         }
         /** @var ITable $table */
         foreach ($this->tables as $table)
@@ -84,6 +106,7 @@ class TransactionManager
             $table->flush();
             $table->unlock();
         }
+        return true;
     }
 
 }

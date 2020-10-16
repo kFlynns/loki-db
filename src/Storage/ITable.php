@@ -2,6 +2,8 @@
 
 namespace LokiDb\Storage;
 
+use Generator;
+
 /**
  * Interface ITable
  * @package LokiDb\Table
@@ -36,10 +38,9 @@ interface ITable
     public function flush($intoVoid = false) : void;
 
     /**
-     * @param callable $callback
      * @param array|null $filter
      */
-    public function fetch(callable $callback, array $filter = null) : void;
+    public function fetch(array $filter = null) : Generator;
 
     /**
      *

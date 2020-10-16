@@ -37,17 +37,16 @@ $lokiDb->createTable($table);
 
 
 
-$lokiDb->beginTransaction();
+//$lokiDb->beginTransaction();
 
-
-for($i = 0; $i < 100; $i++)
+for($i = 0; $i < 1000000; $i++)
 {
     $lokiDb
         ->createQuery()
         ->insert([
             'user_name' => 'janet',
             'email' => 'janet@domain.tld',
-            'age' => 29,
+            'age' => rand(0, 100),
             'is_active' => false,
         ])
         ->into('users')
@@ -56,13 +55,8 @@ for($i = 0; $i < 100; $i++)
 
 
 
-$result = $lokiDb
-    ->createQuery()
-    ->select()
-    ->from('users')
-    ->execute();
 
-print_r($result);die();
+
 
 
 

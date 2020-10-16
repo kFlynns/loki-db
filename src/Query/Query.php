@@ -103,7 +103,7 @@ class Query
      * @return array
      * @throws \Exception
      */
-    public function execute() : array
+    public function execute()
     {
         $setMode = function() {
             $exception = new QueryNotCompleteException();

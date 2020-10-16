@@ -2,6 +2,7 @@
 
 namespace LokiDb;
 
+use Generator;
 use LokiDb\Exception\QueryMissingSegmentException;
 use LokiDb\Query\Query;
 use LokiDb\Storage\ITable;
@@ -33,18 +34,10 @@ class Db
         if(is_dir($databaseFolder))
         {
             $this->databaseFolder = $databaseFolder;
-            $this->transactionManager = new TransactionManager();
+            $this->transactionManager = TransactionManager::getInstance();
             return;
         }
         throw new \Exception('Folder "' . $databaseFolder . '" is invalid.');
-    }
-
-    /**
-     * flush tables beside transactions
-     */
-    public function __destruct()
-    {
-        $this->transactionManager->autoCommit();
     }
 
     /**
@@ -111,11 +104,7 @@ class Db
 
         /** @var ITable $table */
         $table = $this->tables[$from];
-        $table->fetch(function(array $row) use (&$result) {
-            $result[] = $row;
-        }, $select);
-
-        return $result;
+        return $table->fetch();
 
     }
 
@@ -142,10 +131,8 @@ class Db
 
     /**
      * @param Query $query
-     * @return array
-     *
      */
-    public function runQuery(Query $query) : array
+    public function runQuery(Query $query)
     {
         return $this->{'run' . ucfirst($query->getMode())}($query) ?? [];
     }

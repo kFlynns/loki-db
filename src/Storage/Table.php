@@ -2,7 +2,9 @@
 
 namespace LokiDb\Storage;
 
+use Generator;
 use GuzzleHttp\Psr7\Stream;
+use LokiDb\TransactionManager;
 
 /**
  * Class Table
@@ -110,6 +112,7 @@ class Table implements ITable
         );
 
         $this->journal[$this->datasetPointer] = $this->dataRow;
+        TransactionManager::getInstance()->autoCommit();
 
     }
 
@@ -127,11 +130,10 @@ class Table implements ITable
 
 
     /**
-     * @param callable $callback
-     * @param array $fields
      * @param array|null $filter
+     * @return Generator|void
      */
-    public function fetch(callable $callback, array $filter = null) : void
+    public function fetch(array $filter = null) : Generator
     {
         $tableLength = $this->getTableLength();
         $this->stream->rewind();
@@ -150,7 +152,7 @@ class Table implements ITable
                 $data = $this->getDataRow();
             }
 
-            $callback($data);
+            yield $data;
             $this->stream->seek(
                 $this->datasetPointer += $this->rowLength
             );
