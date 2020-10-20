@@ -1,13 +1,41 @@
 <?php
 
 use LokiDb\Db;
+use LokiDb\Query\Condition;
 use LokiDb\Storage\FieldDefinition;
 use LokiDb\Storage\TableDefinition;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 
+Condition::setSymbols([
+    'sd' => 9
+]);
 
+
+$c = new Condition(
+    'sd',
+    '+',
+    new Condition(
+        6,
+        '-',
+        1
+    )
+);
+
+
+
+
+
+
+var_dump($c->solve());
+
+
+
+
+
+
+die();
 
 
 $lokiDb = new Db(__DIR__ . '/test_db');
