@@ -33,9 +33,20 @@ $table->addField(
 
 $lokiDb->createTable($table);
 
+$lokiDb->beginTransaction();
 
 
-//$lokiDb->beginTransaction();
+
+$lokiDb
+    ->createQuery()
+    ->update('users')
+    ->set(['user_name' => 'karl'])
+    ->where(new Condition('age', '=', 1000))
+    ->execute();
+
+
+
+//
 /*
 for($i = 0; $i < 100; $i++)
 {
@@ -54,13 +65,15 @@ for($i = 0; $i < 100; $i++)
 
 
 
+
+
 foreach ($lokiDb->createQuery()->select()->from('users')
 
-->where(
-    new Condition('age','>', 90)
-)
+             ->where(
+                 new Condition('age','>', 90)
+             )
 
-->execute() as $row) {
+             ->execute() as $row) {
     print_r($row);
 }
 
@@ -71,7 +84,8 @@ foreach ($lokiDb->createQuery()->select()->from('users')
 
 
 
-//$lokiDb->commit();
+
+$lokiDb->commit();
 
 
 

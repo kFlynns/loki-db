@@ -133,6 +133,42 @@ class Db
     /**
      * @param Query $query
      */
+    public function runUpdate(Query $query)
+    {
+
+        $update = $query->getSegment(Query::SEGMENT_UPDATE);
+        $set = $query->getSegment(Query::SEGMENT_SET);
+        $where = $query->getSegment(Query::SEGMENT_WHERE);
+
+        if(null === $update || null === $set)
+        {
+            throw new QueryMissingSegmentException();
+        }
+
+        /** @var ITable $table */
+        $table = $this->tables[$update];
+        $this->transactionManager->addTable($table);
+        foreach ($table->fetch($where) as $row)
+        {
+            foreach ($set as $key => $value)
+            {
+                if(!isset($row[$key]))
+                {
+                    throw new \RuntimeException('Field "' . $key . '" in update query is unknown.');
+                }
+                $row[$key] = $value;
+            }
+            $table->setDataRow($row);
+        }
+
+    }
+
+
+
+
+    /**
+     * @param Query $query
+     */
     public function runQuery(Query $query)
     {
         return $this->{'run' . ucfirst($query->getMode())}($query) ?? [];

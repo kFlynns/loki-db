@@ -156,9 +156,7 @@ class Table implements ITable
                 $dataRow = $this->getDataRow();
             }
 
-            $dataRow['trace'] = bin2hex(random_bytes(4));
             $matchCondition = true;
-
             if(null !== $condition)
             {
                 $testCondition = clone $condition;
@@ -166,7 +164,6 @@ class Table implements ITable
                     return $dataRow[$fieldName];
                 });
             }
-
             if($matchCondition)
             {
                 yield $dataRow;

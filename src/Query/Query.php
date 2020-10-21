@@ -18,7 +18,10 @@ class Query
     const SEGMENT_FROM = 0x1;
     const SEGMENT_INSERT = 0x2;
     const SEGMENT_INTO = 0x3;
-    const SEGMENT_WHERE = 0x4;
+    const SEGMENT_UPDATE = 0x4;
+    const SEGMENT_SET = 0x5;
+    const SEGMENT_WHERE = 0xF0;
+
 
     const MODE_SELECT = 'select';
     const MODE_INSERT = 'insert';
@@ -100,6 +103,26 @@ class Query
     }
 
     /**
+     * @param $tableName
+     * @return $this
+     */
+    public function update($tableName) : Query
+    {
+        $this->segments[self::SEGMENT_UPDATE] = hash('md5', $tableName);
+        return $this;
+    }
+
+    /**
+     * @param array $fields
+     * @return $this
+     */
+    public function set(array $fields) : Query
+    {
+        $this->segments[self::SEGMENT_SET] = $fields;
+        return $this;
+    }
+
+    /**
      * @param Condition $condition
      * @return $this
      */
@@ -132,6 +155,17 @@ class Query
                 $this->mode = self::MODE_INSERT;
                 return;
             }
+
+            if(isset($this->segments[self::SEGMENT_UPDATE]))
+            {
+                if(null !== $this->mode)
+                {
+                    throw $exception;
+                }
+                $this->mode = self::MODE_UPDATE;
+                return;
+            }
+
         };
         $setMode();
         if(!$this->mode)

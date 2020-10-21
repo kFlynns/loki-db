@@ -30,7 +30,6 @@ class Condition
     private $right;
     /** @var mixed */
     private $operator;
-    
     /** @var array  */
     private static $symbols = [];
 
