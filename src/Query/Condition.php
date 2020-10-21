@@ -2,6 +2,10 @@
 
 namespace LokiDb\Query;
 
+/**
+ * Class Condition
+ * @package LokiDb\Query
+ */
 class Condition
 {
 
@@ -20,14 +24,13 @@ class Condition
     const DIVISION = '/';
     const MULTIPLICATION = '*';
 
-
+    /** @var mixed */
     private $left;
-
+    /** @var mixed */
     private $right;
-
+    /** @var mixed */
     private $operator;
-
-
+    
     /** @var array  */
     private static $symbols = [];
 
@@ -55,35 +58,50 @@ class Condition
 
 
     /**
-     * @return bool
+     * @param callable|null $callback
      * @throws \Exception
      */
-    public function solve()
+    protected function resolveSymbols(callable $callback = null)
     {
-
-
-        foreach (['left', 'right'] as $side)
+        foreach (['right', 'left'] as $side)
         {
-            if(is_a($this->{$side}, Condition::class))
+            if($this->{$side} instanceof Condition)
             {
-                $this->{$side} = $this->{$side}->solve();
+                $this->{$side} = $this->{$side}->solve($callback);
+                continue;
             }
             elseif(is_string($this->{$side}))
             {
+                if(is_callable($callback))
+                {
+                    $this->{$side} = $callback($this->{$side});
+                    continue;
+                }
                 $this->{$side} = self::$symbols[$this->{$side}] ?? null;
                 if(!$this->{$side})
                 {
-                    throw new \Exception('asdasd');
+                    throw new \RuntimeException('Could not resolve symbol.');
                 }
             }
 
         }
+    }
 
+
+    /**
+     * @param callable|null $callback
+     * @return bool|float|int
+     * @throws \Exception
+     */
+    public function solve(callable $callback = null)
+    {
+
+        $this->resolveSymbols($callback);
 
         switch($this->operator)
         {
             case self::EQUAL:
-                return $this->left === $this->right;
+                return $this->left == $this->right;
 
             case self::NOT_EQUAL:
                 return $this->left !== $this->right;
@@ -107,7 +125,7 @@ class Condition
                 return $this->left * $this->right;
 
             default:
-                throw new \Exception('asd');
+                throw new \Exception('Unknown operator "' . $this->operator . '".');
 
         }
 

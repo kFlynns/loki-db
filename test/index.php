@@ -8,36 +8,6 @@ use LokiDb\Storage\TableDefinition;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 
-Condition::setSymbols([
-    'sd' => 9
-]);
-
-
-$c = new Condition(
-    'sd',
-    '+',
-    new Condition(
-        6,
-        '-',
-        1
-    )
-);
-
-
-
-
-
-
-var_dump($c->solve());
-
-
-
-
-
-
-die();
-
-
 $lokiDb = new Db(__DIR__ . '/test_db');
 
 $table = new TableDefinition(
@@ -67,7 +37,7 @@ $lokiDb->createTable($table);
 
 //$lokiDb->beginTransaction();
 /*
-for($i = 0; $i < 1000000; $i++)
+for($i = 0; $i < 100; $i++)
 {
     $lokiDb
         ->createQuery()
@@ -83,9 +53,15 @@ for($i = 0; $i < 1000000; $i++)
 */
 
 
-foreach ($lokiDb->createQuery()->select()->from('users')->where('age = 10')->execute() as $row)
-{
 
+foreach ($lokiDb->createQuery()->select()->from('users')
+
+->where(
+    new Condition('age','>', 90)
+)
+
+->execute() as $row) {
+    print_r($row);
 }
 
 

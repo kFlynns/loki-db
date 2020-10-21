@@ -4,6 +4,7 @@ namespace LokiDb\Storage;
 
 use Generator;
 use GuzzleHttp\Psr7\Stream;
+use LokiDb\Query\Condition;
 use LokiDb\TransactionManager;
 
 /**
@@ -130,31 +131,48 @@ class Table implements ITable
 
 
     /**
-     * @param array|null $filter
+     * @param Condition|null $condition
      * @return Generator|void
      */
-    public function fetch(array $filter = null) : Generator
+    public function fetch(Condition $condition = null) : Generator
     {
 
         $tableLength = $this->getTableLength();
         $this->stream->rewind();
         $this->datasetPointer = 0;
+
         do
         {
+
             if(isset($this->journal[$this->datasetPointer]))
             {
-                yield unpack(
+                $dataRow = unpack(
                     $this->unpackDescriptor,
                     $this->journal[$this->datasetPointer]
                 );
             }
             else
             {
-                yield $this->getDataRow();
+                $dataRow = $this->getDataRow();
             }
-            $this->stream->seek(
-                $this->datasetPointer += $this->rowLength
-            );
+
+            $dataRow['trace'] = bin2hex(random_bytes(4));
+            $matchCondition = true;
+
+            if(null !== $condition)
+            {
+                $testCondition = clone $condition;
+                $matchCondition = (bool)$testCondition->solve(function($fieldName) use ($dataRow) {
+                    return $dataRow[$fieldName];
+                });
+            }
+
+            if($matchCondition)
+            {
+                yield $dataRow;
+            }
+
+            $this->stream->seek($this->datasetPointer += $this->rowLength);
 
         } while ($tableLength > $this->datasetPointer);
 

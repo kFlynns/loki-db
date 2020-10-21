@@ -3,6 +3,7 @@
 namespace LokiDb\Storage;
 
 use Generator;
+use LokiDb\Query\Condition;
 
 /**
  * Interface ITable
@@ -38,9 +39,9 @@ interface ITable
     public function flush($intoVoid = false) : void;
 
     /**
-     * @param array|null $filter
+     * @param Condition|null $filter
      */
-    public function fetch(array $filter = null) : Generator;
+    public function fetch(Condition $filter = null) : Generator;
 
     /**
      *

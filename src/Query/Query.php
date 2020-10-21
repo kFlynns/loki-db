@@ -100,25 +100,12 @@ class Query
     }
 
     /**
-     * @param $filter
+     * @param Condition $condition
      * @return $this
      */
-    public function where($filter) : Query
+    public function where(Condition $condition) : Query
     {
-        $parseFilter = function() use ($filter) {
-            $parts = preg_split('/\s/', $filter);
-            $filter = [];
-            foreach ($parts as $part)
-            {
-                $part = trim($part);
-                if (!$part) {
-                    continue;
-                }
-                $filter[] = $part;
-            }
-            return $filter;
-        };
-        $this->segments[self::SEGMENT_WHERE] = $parseFilter();
+        $this->segments[self::SEGMENT_WHERE] = $condition;
         return $this;
     }
 
