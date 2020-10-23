@@ -2,8 +2,8 @@
 
 namespace LokiDb;
 
-use Generator;
 use LokiDb\Exception\QueryMissingSegmentException;
+use LokiDb\Exception\RunTimeException;
 use LokiDb\Query\Query;
 use LokiDb\Storage\ITable;
 use LokiDb\Storage\TableDefinition;
@@ -37,7 +37,7 @@ class Db
             $this->transactionManager = TransactionManager::getInstance();
             return;
         }
-        throw new \Exception('Folder "' . $databaseFolder . '" is invalid.');
+        throw new RunTimeException('Folder "' . $databaseFolder . '" is invalid.');
     }
 
     /**
@@ -56,6 +56,11 @@ class Db
     {
         $table = Storage\Table::create($tableDefinition->getName());
         $table->addDefinition($tableDefinition->getFieldDefinitions());
+        if(isset($this->tables[$table->getUId()]))
+        {
+            throw new RuntimeException('The table "' . $table->getUId() . '" does already exist.');
+        }
+
         $this->tables[$table->getUId()] = $table;
         $table->connectToDisk(
             $this->databaseFolder
@@ -154,7 +159,7 @@ class Db
             {
                 if(!isset($row[$key]))
                 {
-                    throw new \RuntimeException('Field "' . $key . '" in update query is unknown.');
+                    throw new RuntimeException('Field "' . $key . '" in update query is unknown.');
                 }
                 $row[$key] = $value;
             }

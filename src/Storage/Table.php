@@ -4,6 +4,7 @@ namespace LokiDb\Storage;
 
 use Generator;
 use GuzzleHttp\Psr7\Stream;
+use LokiDb\Exception\RunTimeException;
 use LokiDb\Query\Condition;
 use LokiDb\TransactionManager;
 
@@ -253,7 +254,7 @@ class Table implements ITable
 
             if(!is_a($fieldDefinition, FieldDefinition::class))
             {
-                throw new \Exception('Error while setting field definitions for table "' . $this->name . '", given object was not a FieldDefinition.');
+                throw new RunTimeException('Error while setting field definitions for table "' . $this->name . '", given object was not a FieldDefinition.');
             }
 
             $name = $fieldDefinition->getName();
@@ -314,7 +315,7 @@ class Table implements ITable
 
         if(!is_writable($path))
         {
-            throw new \Exception('Could not write table to disk under: "' . $path . '".');
+            throw new RunTimeException('Could not write table to disk under: "' . $path . '".');
         }
 
         // try in case file is locked

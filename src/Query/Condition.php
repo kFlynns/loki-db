@@ -2,6 +2,8 @@
 
 namespace LokiDb\Query;
 
+use LokiDb\Exception\RunTimeException;
+
 /**
  * Class Condition
  * @package LokiDb\Query
@@ -79,7 +81,7 @@ class Condition
                 $this->{$side} = self::$symbols[$this->{$side}] ?? null;
                 if(!$this->{$side})
                 {
-                    throw new \RuntimeException('Could not resolve symbol.');
+                    throw new RuntimeException('Could not resolve symbol.');
                 }
             }
 
@@ -124,14 +126,11 @@ class Condition
                 return $this->left * $this->right;
 
             default:
-                throw new \Exception('Unknown operator "' . $this->operator . '".');
+                throw new RunTimeException('Unknown operator "' . $this->operator . '".');
 
         }
 
-
-
     }
-
 
 
 }

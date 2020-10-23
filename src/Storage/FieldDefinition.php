@@ -2,6 +2,8 @@
 
 namespace LokiDb\Storage;
 
+use LokiDb\Exception\RunTimeException;
+
 /**
  * Class FieldDefinition
  * @package LokiDb\Table
@@ -65,7 +67,7 @@ class FieldDefinition
                 break;
 
             default:
-                throw new \Exception('sxd');
+                throw new RunTimeException('Tha datatype "' . $dataType . '" is unknown.');
 
         }
 

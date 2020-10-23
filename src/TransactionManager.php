@@ -2,6 +2,7 @@
 
 namespace LokiDb;
 
+use LokiDb\Exception\RunTimeException;
 use LokiDb\Storage\ITable;
 
 
@@ -60,7 +61,7 @@ class TransactionManager
     {
         if(!$this->transactionStarted)
         {
-            throw new \RuntimeException('There is no active transaction.');
+            throw new RunTimeException('There is no active transaction.');
         }
         /** @var ITable $table */
         foreach ($this->tables as $table)
@@ -83,7 +84,7 @@ class TransactionManager
     {
         if($this->transactionStarted)
         {
-            throw new \RuntimeException('A transaction was already started.');
+            throw new RuntimeException('A transaction was already started.');
         }
         $this->tables = [];
         $this->transactionStarted = true;
