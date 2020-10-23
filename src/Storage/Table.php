@@ -284,9 +284,10 @@ class Table implements ITable
             }
 
             $this->rowLength += (int)$fieldDefinition->getByteLength();
-            $this->emptyRow = str_repeat(hex2bin('00'), $this->rowLength);
-        }
 
+        }
+        
+        $this->emptyRow = str_repeat(hex2bin('00'), $this->rowLength);
         $this->unpackDescriptor =  rtrim($this->unpackDescriptor, '/');
 
     }
