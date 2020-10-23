@@ -164,6 +164,24 @@ class Db
     }
 
 
+    public function runDelete(Query $query)
+    {
+        $from = $query->getSegment(Query::SEGMENT_FROM);
+        $where = $query->getSegment(Query::SEGMENT_WHERE);
+
+        if(null === $from)
+        {
+            throw new QueryMissingSegmentException();
+        }
+
+        /** @var ITable $table */
+        $table = $this->tables[$from];
+        $this->transactionManager->addTable($table);
+        foreach ($table->fetch($where) as $row)
+        {
+            $table->setEmptyDataRow();
+        }
+    }
 
 
     /**

@@ -36,14 +36,14 @@ $lokiDb->createTable($table);
 $lokiDb->beginTransaction();
 
 
-
+/*
 $lokiDb
     ->createQuery()
     ->update('users')
     ->set(['user_name' => 'karl'])
     ->where(new Condition('age', '=', 1000))
     ->execute();
-
+*/
 
 
 //
@@ -63,14 +63,14 @@ for($i = 0; $i < 100; $i++)
 }
 */
 
-
+//$lokiDb->createQuery()->delete()->from('users')->where(new Condition('age','>', 90))->execute();
 
 
 
 foreach ($lokiDb->createQuery()->select()->from('users')
 
              ->where(
-                 new Condition('age','>', 90)
+                 new Condition('age','>', 10)
              )
 
              ->execute() as $row) {
@@ -85,7 +85,7 @@ foreach ($lokiDb->createQuery()->select()->from('users')
 
 
 
-$lokiDb->commit();
+//$lokiDb->commit();
 
 
 

@@ -29,6 +29,9 @@ class Table implements ITable
     /** @var int length of binary row */
     private $rowLength = 0;
 
+    /** @var string NULL dataset*/
+    private $emptyRow;
+
     /** @var string first argument for pack() */
     private $packDescriptor;
 
@@ -115,6 +118,15 @@ class Table implements ITable
         $this->journal[$this->datasetPointer] = $this->dataRow;
         TransactionManager::getInstance()->autoCommit();
 
+    }
+
+    /**
+     *
+     */
+    public function setEmptyDataRow()
+    {
+        $this->journal[$this->datasetPointer] = $this->emptyRow;
+        TransactionManager::getInstance()->autoCommit();
     }
 
     /**
@@ -271,6 +283,7 @@ class Table implements ITable
             }
 
             $this->rowLength += (int)$fieldDefinition->getByteLength();
+            $this->emptyRow = str_repeat(hex2bin('00'), $this->rowLength);
         }
 
         $this->unpackDescriptor =  rtrim($this->unpackDescriptor, '/');

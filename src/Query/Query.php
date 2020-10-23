@@ -20,8 +20,8 @@ class Query
     const SEGMENT_INTO = 0x3;
     const SEGMENT_UPDATE = 0x4;
     const SEGMENT_SET = 0x5;
+    const SEGMENT_DELETE = 0x6;
     const SEGMENT_WHERE = 0xF0;
-
 
     const MODE_SELECT = 'select';
     const MODE_INSERT = 'insert';
@@ -123,6 +123,16 @@ class Query
     }
 
     /**
+     * @return $this
+     */
+    public function delete() : Query
+    {
+        $this->segments[self::SEGMENT_DELETE] = true;
+        return $this;
+    }
+
+
+    /**
      * @param Condition $condition
      * @return $this
      */
@@ -140,6 +150,7 @@ class Query
     public function execute()
     {
         $setMode = function() {
+
             $exception = new QueryNotCompleteException();
             if(isset($this->segments[self::SEGMENT_SELECT]))
             {
@@ -163,6 +174,16 @@ class Query
                     throw $exception;
                 }
                 $this->mode = self::MODE_UPDATE;
+                return;
+            }
+
+            if(isset($this->segments[self::SEGMENT_DELETE]))
+            {
+                if(null !== $this->mode)
+                {
+                    throw $exception;
+                }
+                $this->mode = self::MODE_DELETE;
                 return;
             }
 
