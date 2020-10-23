@@ -57,7 +57,14 @@ interface ITable
      * @param array[FieldDefinition] $fieldDefinitions
      * @return mixed
      */
-    public function addDefinition(array $fieldDefinitions);
+    public function addFieldDefinitions(array $fieldDefinitions);
+
+    /**
+     * todo: interfacing Index
+     * @param array $indices
+     * @return mixed
+     */
+    public function addIndices(array $indices);
 
     /**
      * @param string $databaseFolder

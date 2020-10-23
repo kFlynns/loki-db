@@ -54,6 +54,10 @@ class Table implements ITable
     /** @var array */
     private $journal = [];
 
+    /** @var array  */
+    private $indices = [];
+
+
     /**
      * Table constructor.
      */
@@ -246,7 +250,7 @@ class Table implements ITable
     /**
      * @param array[FieldDefinition] $fieldDefinitions
      */
-    public function addDefinition(array $fieldDefinitions)
+    public function addFieldDefinitions(array $fieldDefinitions)
     {
         /** @var FieldDefinition $fieldDefinition */
         foreach ($fieldDefinitions as $fieldDefinition)
@@ -286,9 +290,38 @@ class Table implements ITable
             $this->rowLength += (int)$fieldDefinition->getByteLength();
 
         }
-        
+
         $this->emptyRow = str_repeat(hex2bin('00'), $this->rowLength);
         $this->unpackDescriptor =  rtrim($this->unpackDescriptor, '/');
+
+    }
+
+    /**
+     * @param array[Index] $indices
+     */
+    public function addIndices(array $indices)
+    {
+        foreach ($indices as $index)
+        {
+
+            $indexField = null;
+
+            /** @var IField $field */
+            foreach ($this->fields as $field)
+            {
+                if($field->getName() === $index['field'])
+                {
+                    $indexField = $field;
+                    break;
+                }
+            }
+
+            $this->indices[$field->getName()] = new Index(
+                $indexField,
+                $index['unique'] ?? false,
+                $index['sort'] ?? Index::SORT_ASC
+            );
+        }
 
     }
 
@@ -309,9 +342,7 @@ class Table implements ITable
                 true
             );
             touch($path);
-            touch($path . '.idx');
             chmod($path, 0600);
-            chmod($path . '.idx', 0600);
         }
 
         if(!is_writable($path))

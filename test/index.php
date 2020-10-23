@@ -3,6 +3,7 @@
 use LokiDb\Db;
 use LokiDb\Query\Condition;
 use LokiDb\Storage\FieldDefinition;
+use LokiDb\Storage\Index;
 use LokiDb\Storage\TableDefinition;
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -11,8 +12,11 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $lokiDb = new Db(__DIR__ . '/test_db');
 
 $table = new TableDefinition(
-    'users',
-    []
+    'users', [[
+        'field' => 'user_name',
+        'primary' => true,
+        'sort' => Index::SORT_DESC
+    ]]
 );
 
 $table->addField(
@@ -33,7 +37,7 @@ $table->addField(
 
 $lokiDb->createTable($table);
 
-$lokiDb->beginTransaction();
+//$lokiDb->beginTransaction();
 
 
 /*
@@ -46,7 +50,6 @@ $lokiDb
 */
 
 
-//
 /*
 for($i = 0; $i < 100; $i++)
 {

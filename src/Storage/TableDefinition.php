@@ -2,6 +2,8 @@
 
 namespace LokiDb\Storage;
 
+use LokiDb\Exception\RunTimeException;
+
 /**
  * Class TableDefinition
  * @package LokiDb\Storage
@@ -13,22 +15,35 @@ class TableDefinition
     private $tableName;
 
     /** @var array */
-    private $primaryKeys = [];
+    private $indices = [];
 
-    /**
-     * @var array
-     */
+    /** @var array  */
     private $fieldDefinitions = [];
 
     /**
      * TableDefinition constructor.
      * @param string $tableName
-     * @param array $primaryKeys
+     * @param array $indeces
      */
-    public function __construct($tableName, array $primaryKeys)
+    public function __construct($tableName, array $indices)
     {
         $this->tableName = $tableName;
-        $this->primaryKeys = $primaryKeys;
+        $this->indices = $indices;
+        $foundPrimary = false;
+
+        foreach ($this->indices as $index)
+        {
+            if(isset($index['primary']) && $index['primary'])
+            {
+                $foundPrimary = true;
+                break;
+            }
+        }
+        if(!$foundPrimary)
+        {
+            throw new RunTimeException('The table "'  .$tableName . '" need to define at least one primary key.');
+        }
+
     }
 
     /**
@@ -64,5 +79,12 @@ class TableDefinition
         return $this->fieldDefinitions;
     }
 
+    /**
+     * @return array
+     */
+    public function getIndices()
+    {
+        return $this->indices;
+    }
 
 }

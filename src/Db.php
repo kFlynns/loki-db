@@ -54,17 +54,20 @@ class Db
      */
     public function createTable(TableDefinition $tableDefinition) : ITable
     {
+
         $table = Storage\Table::create($tableDefinition->getName());
-        $table->addDefinition($tableDefinition->getFieldDefinitions());
         if(isset($this->tables[$table->getUId()]))
         {
             throw new RuntimeException('The table "' . $table->getUId() . '" does already exist.');
         }
 
-        $this->tables[$table->getUId()] = $table;
+        $table->addFieldDefinitions($tableDefinition->getFieldDefinitions());
+        $table->addIndices($tableDefinition->getIndices());
         $table->connectToDisk(
             $this->databaseFolder
         );
+
+        $this->tables[$table->getUId()] = $table;
         return $table;
     }
 
