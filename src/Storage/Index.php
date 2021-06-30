@@ -85,9 +85,25 @@ class Index
         $this->unique = $unique;
         $this->sort = $sort;
 
-        $this->generateNew();
+
+
+
+
+
+        //$this->generateNew();
 
     }
+
+
+
+
+    public function tryToLoadFromDisk()
+    {
+        $this->leftStream->rewind();
+
+    }
+
+
 
 
     /**
@@ -108,15 +124,26 @@ class Index
     }
 
 
-
+    /**
+     * write index to disk
+     * @throws \Exception
+     */
     public function __destruct()
     {
         if($this->leftStream)
         {
+            $this->leftStream->rewind();
+            $this->leftStream->write(
+                $this->bTree->pack('left')
+            );
             $this->leftStream->close();
         }
         if($this->rightStream)
         {
+            $this->rightStream->rewind();
+            $this->rightStream->write(
+                $this->bTree->pack('right')
+            );
             $this->rightStream->close();
         }
     }

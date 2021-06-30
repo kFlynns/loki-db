@@ -40,12 +40,11 @@ class Btree
         $this->pointer = 0;
         $this->rightPointers = [];
         $this->leftPointers = [];
-        //array_unshift($data, null);
+
         $this->dataTree = $data;
         $this->size = count($data);
         $this->constructBinaryTree();
 
-        print_r($this->dataTree);
         echo 'left' . "\n";
         print_r($this->leftPointers);
         echo 'right' . "\n";
@@ -54,11 +53,29 @@ class Btree
 
     }
 
-
-    public function pack()
+    /**
+     * @param $direction
+     * @return false|string
+     * @throws \Exception
+     */
+    public function pack($direction)
     {
-        return pack("V*", ...$this->leftPointers);
+        if($direction !== 'left' && $direction !== 'right')
+        {
+            throw new \Exception(self::class . ': use "left" or "right" as argument.');
+        }
+        return pack("V*", ...$this->{$direction . 'Pointers'});
     }
+
+
+    public function unpack($direction, $binaryData)
+    {
+
+    }
+
+
+
+
 
 
     /**
