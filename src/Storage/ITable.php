@@ -31,7 +31,7 @@ interface ITable
     /**
      * @return array
      */
-    public function getDataRow() : array;
+    public function getDataRow() : ?array;
 
     /**
      * @param bool $intoVoid

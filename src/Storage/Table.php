@@ -48,6 +48,9 @@ class Table implements ITable
     /** @var string */
     private $diskFilePath;
 
+    /** @var string */
+    private $databaseFolder;
+
     /** @var int actual offset in the table */
     private $datasetPointer;
 
@@ -90,6 +93,10 @@ class Table implements ITable
      */
     public function __destruct()
     {
+        if (!$this->stream)
+        {
+            return;
+        }
         $this->stream->close();
     }
 
@@ -135,11 +142,15 @@ class Table implements ITable
     }
 
     /**
-     * @return array
+     * @return array|false
      */
-    public function getDataRow() : array
+    public function getDataRow() : ?array
     {
         $this->dataRow = $this->stream->read($this->rowLength);
+        if($this->rowLength !== strlen($this->dataRow))
+        {
+            return null;
+        }
         return unpack(
             $this->unpackDescriptor,
             $this->dataRow
@@ -173,17 +184,20 @@ class Table implements ITable
                 $dataRow = $this->getDataRow();
             }
 
-            $matchCondition = true;
-            if(null !== $condition)
+            if($dataRow !== null)
             {
-                $testCondition = clone $condition;
-                $matchCondition = (bool)$testCondition->solve(function($fieldName) use ($dataRow) {
-                    return $dataRow[$fieldName];
-                });
-            }
-            if($matchCondition)
-            {
-                yield $dataRow;
+                $matchCondition = true;
+                if(null !== $condition)
+                {
+                    $testCondition = clone $condition;
+                    $matchCondition = (bool)$testCondition->solve(function($fieldName) use ($dataRow) {
+                        return $dataRow[$fieldName];
+                    });
+                }
+                if($matchCondition)
+                {
+                    yield $dataRow;
+                }
             }
 
             $this->stream->seek($this->datasetPointer += $this->rowLength);
@@ -317,6 +331,8 @@ class Table implements ITable
             }
 
             $this->indices[$field->getName()] = new Index(
+                $this->databaseFolder,
+                $this,
                 $indexField,
                 $index['unique'] ?? false,
                 $index['sort'] ?? Index::SORT_ASC
@@ -331,7 +347,7 @@ class Table implements ITable
      */
     public function connectToDisk($databaseFolder)
     {
-
+        $this->databaseFolder = $databaseFolder;
         $path = rtrim($databaseFolder, '/\\') . '/' . $this->diskFilePath;
 
         if(!is_writable($path))

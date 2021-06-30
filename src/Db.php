@@ -60,13 +60,11 @@ class Db
         {
             throw new RuntimeException('The table "' . $table->getUId() . '" does already exist.');
         }
-
         $table->addFieldDefinitions($tableDefinition->getFieldDefinitions());
-        $table->addIndices($tableDefinition->getIndices());
         $table->connectToDisk(
             $this->databaseFolder
         );
-
+        $table->addIndices($tableDefinition->getIndices());
         $this->tables[$table->getUId()] = $table;
         return $table;
     }
