@@ -1,8 +1,8 @@
 <?php
 
-namespace LokiDb\Storage;
+namespace KFlynns\LokiDb\Storage;
 
-use LokiDb\Exception\RunTimeException;
+use KFlynns\LokiDb\Exception\RunTimeException;
 
 /**
  * Class FieldDefinition
@@ -11,14 +11,14 @@ use LokiDb\Exception\RunTimeException;
 class FieldDefinition
 {
 
-    const DATA_TYPE_CHAR = 0x0;
-    const DATA_TYPE_BOOL = 0x1;
-    const DATA_TYPE_INT = 0x2;
-    const DATA_TYPE_STRING = 0x3;
-    const DATA_TYPE_FLOAT = 0x4;
+    const DATA_TYPE_CHAR = 'char';
+    const DATA_TYPE_BOOL = 'boolean';
+    const DATA_TYPE_INT = 'integer';
+    const DATA_TYPE_STRING = 'string';
+    const DATA_TYPE_FLOAT = 'float';
 
-    const DATA_TYPE_DATE = 0x10;
-    const DATA_TYPE_DATETIME = 0x11;
+    const DATA_TYPE_DATE = 'date';
+    const DATA_TYPE_DATETIME = 'datetime';
 
     const INTEGER_SIZE = 4;
 
@@ -41,6 +41,7 @@ class FieldDefinition
     public function __construct($name, $dataType, $byteLength = 1)
     {
 
+        $dataType = \strtolower($dataType);
         switch ($dataType)
         {
             case self::DATA_TYPE_CHAR:
@@ -80,15 +81,15 @@ class FieldDefinition
     /**
      * @return string
      */
-    public function getName() : string
+    public function getName(): string
     {
         return $this->name;
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getDataType() : int
+    public function getDataType(): string
     {
         return $this->dataType;
     }
@@ -96,7 +97,7 @@ class FieldDefinition
     /**
      * @return int
      */
-    public function getByteLength() : int
+    public function getByteLength(): int
     {
         return $this->byteLength;
     }

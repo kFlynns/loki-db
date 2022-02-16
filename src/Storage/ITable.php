@@ -1,9 +1,9 @@
 <?php
 
-namespace LokiDb\Storage;
+namespace KFlynns\LokiDb\Storage;
 
 use Generator;
-use LokiDb\Query\Condition;
+use KFlynns\LokiDb\Query\Condition;
 
 /**
  * Interface ITable
@@ -29,19 +29,19 @@ interface ITable
     public function setDataRow(array $data) : void;
 
     /**
-     * @return array
+     * @return array|null
      */
-    public function getDataRow() : array;
+    public function getDataRow(): ?array;
 
     /**
      * @param bool $intoVoid
      */
-    public function flush($intoVoid = false) : void;
+    public function flush($intoVoid = false): void;
 
     /**
      * @param Condition|null $filter
      */
-    public function fetch(Condition $filter = null) : Generator;
+    public function fetch(Condition $filter = null): Generator;
 
     /**
      *

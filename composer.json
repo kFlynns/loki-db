@@ -10,9 +10,19 @@
         }
     ],
     "autoload": {
-        "psr-4": {"LokiDb\\": "src/"}
+        "psr-4": {
+            "KFlynns\\LokiDb\\": "src/",
+            "KFlynns\\Test\\": "test/"
+        }
     },
     "require": {
-        "guzzlehttp/psr7": "*"
+        "php": ">7.0",
+        "ext-dom": "*",
+        "ext-mbstring": "*",
+        "ext-xml": "*",
+        "ext-xmlwriter": "*",
+        "guzzlehttp/psr7": "*",
+        "phpunit/phpunit": "^9.5",
+        "ext-json": "*"
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace LokiDb\Exception;
+namespace KFlynns\LokiDb\Exception;
 
 use Throwable;
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace LokiDb\Query;
+namespace KFlynns\LokiDb\Query;
 
-use LokiDb\Exception\RunTimeException;
+use KFlynns\LokiDb\Exception\RunTimeException;
 
 /**
  * Class Condition

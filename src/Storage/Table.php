@@ -1,12 +1,12 @@
 <?php
 
-namespace LokiDb\Storage;
+namespace KFlynns\LokiDb\Storage;
 
 use Generator;
 use GuzzleHttp\Psr7\Stream;
-use LokiDb\Exception\RunTimeException;
-use LokiDb\Query\Condition;
-use LokiDb\TransactionManager;
+use KFlynns\LokiDb\Exception\RunTimeException;
+use KFlynns\LokiDb\Query\Condition;
+use KFlynns\LokiDb\TransactionManager;
 
 /**
  * Class Table
@@ -106,6 +106,12 @@ class Table implements ITable
             if(isset($data[$field->getName()]))
             {
                 $sortedRow[] = $data[$field->getName()];
+                if(isset($this->indices[$field->getName()]))
+                {
+                    /** @var Index $index */
+                    $index = $this->indices[$field->getName()];
+                    $index->write($data[$field->getName()], $this->datasetPointer);
+                }
                 continue;
             }
             $sortedRow[] = null;
@@ -137,13 +143,22 @@ class Table implements ITable
     /**
      * @return array
      */
-    public function getDataRow() : array
+    public function getDataRow(): ?array
     {
         $this->dataRow = $this->stream->read($this->rowLength);
-        return unpack(
+        if ($this->rowLength !== \strlen($this->dataRow))
+        {
+            return null;
+        }
+        $row = \unpack(
             $this->unpackDescriptor,
             $this->dataRow
         );
+        if (false === $row)
+        {
+            return null;
+        }
+        return $row;
     }
 
 
@@ -178,7 +193,7 @@ class Table implements ITable
             {
                 $testCondition = clone $condition;
                 $matchCondition = (bool)$testCondition->solve(function($fieldName) use ($dataRow) {
-                    return $dataRow[$fieldName];
+                    return $dataRow[$fieldName] ?? null;
                 });
             }
             if($matchCondition)

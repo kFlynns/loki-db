@@ -1,10 +1,10 @@
 <?php
 
-namespace LokiDb\Query;
+namespace KFlynns\LokiDb\Query;
 
-use LokiDb\Db;
-use LokiDb\Exception\QueryMissingSegmentException;
-use LokiDb\Exception\QueryNotCompleteException;
+use KFlynns\LokiDb\Db;
+use KFlynns\LokiDb\Exception\QueryMissingSegmentException;
+use KFlynns\LokiDb\Exception\QueryNotCompleteException;
 
 
 /**
@@ -14,14 +14,14 @@ use LokiDb\Exception\QueryNotCompleteException;
 class Query
 {
 
-    const SEGMENT_SELECT = 0x0;
-    const SEGMENT_FROM = 0x1;
-    const SEGMENT_INSERT = 0x2;
-    const SEGMENT_INTO = 0x3;
-    const SEGMENT_UPDATE = 0x4;
-    const SEGMENT_SET = 0x5;
-    const SEGMENT_DELETE = 0x6;
-    const SEGMENT_WHERE = 0xF0;
+    const SEGMENT_SELECT = 'select';
+    const SEGMENT_FROM = 'from';
+    const SEGMENT_INSERT = 'insert';
+    const SEGMENT_INTO = 'into';
+    const SEGMENT_UPDATE = 'update';
+    const SEGMENT_SET = 'set';
+    const SEGMENT_DELETE = 'delete';
+    const SEGMENT_WHERE = 'where';
 
     const MODE_SELECT = 'select';
     const MODE_INSERT = 'insert';

@@ -1,12 +1,13 @@
 <?php
 
-namespace LokiDb;
+namespace KFlynns\LokiDb;
 
-use LokiDb\Exception\QueryMissingSegmentException;
-use LokiDb\Exception\RunTimeException;
-use LokiDb\Query\Query;
-use LokiDb\Storage\ITable;
-use LokiDb\Storage\TableDefinition;
+use KFlynns\LokiDb\Exception\QueryMissingSegmentException;
+use KFlynns\LokiDb\Exception\RunTimeException;
+use KFlynns\LokiDb\Query\Query;
+use KFlynns\LokiDb\Storage\ISchema;
+use KFlynns\LokiDb\Storage\ITable;
+use KFlynns\LokiDb\Storage\TableDefinition;
 
 /**
  * Class Db
@@ -15,29 +16,47 @@ use LokiDb\Storage\TableDefinition;
 class Db
 {
 
-    /** @var string */
-    private $databaseFolder;
-
     /** @var array[Table] */
     private $tables = [];
 
     /** @var TransactionManager  */
     private $transactionManager;
 
+    /** @var ISchema  */
+    protected $schema;
+
     /**
      * Db constructor.
      * @param string $databaseFolder
      * @throws \Exception
      */
-    public function __construct($databaseFolder)
+    public function __construct(ISchema $schema)
     {
-        if(is_dir($databaseFolder))
+        $this->transactionManager = TransactionManager::getInstance();
+        $this->schema = $schema;
+        /** @var TableDefinition $table */
+        foreach ($schema->getTables() as $table)
         {
-            $this->databaseFolder = $databaseFolder;
-            $this->transactionManager = TransactionManager::getInstance();
-            return;
+            $this->createTable($table);
         }
-        throw new RunTimeException('Folder "' . $databaseFolder . '" is invalid.');
+    }
+
+    /**
+     * @param TableDefinition $tableDefinition
+     * @return ITable
+     */
+    protected function createTable(TableDefinition $tableDefinition): ITable
+    {
+        $table = Storage\Table::create($tableDefinition->getName());
+        if(isset($this->tables[$table->getUId()]))
+        {
+            throw new RuntimeException('The table "' . $table->getUId() . '" does already exist.');
+        }
+        $table->addFieldDefinitions($tableDefinition->getFieldDefinitions());
+        $table->addIndices($tableDefinition->getIndices());
+        $table->connectToDisk($this->schema->getDatabaseFolder());
+        $this->tables[$table->getUId()] = $table;
+        return $table;
     }
 
     /**
@@ -46,29 +65,6 @@ class Db
     public function createQuery() : Query
     {
         return Query::create($this);
-    }
-
-    /**
-     * @param TableDefinition $tableDefinition
-     * @return ITable
-     */
-    public function createTable(TableDefinition $tableDefinition) : ITable
-    {
-
-        $table = Storage\Table::create($tableDefinition->getName());
-        if(isset($this->tables[$table->getUId()]))
-        {
-            throw new RuntimeException('The table "' . $table->getUId() . '" does already exist.');
-        }
-
-        $table->addFieldDefinitions($tableDefinition->getFieldDefinitions());
-        $table->addIndices($tableDefinition->getIndices());
-        $table->connectToDisk(
-            $this->databaseFolder
-        );
-
-        $this->tables[$table->getUId()] = $table;
-        return $table;
     }
 
 
@@ -96,6 +92,27 @@ class Db
         $this->transactionManager->commit(true);
     }
 
+
+    protected function getValidatedQuerySegment(Query $query, string $segmentName)
+    {
+        $segment = $query->getSegment($segmentName);
+        if (!$segment)
+        {
+            return $segment;
+        }
+        switch (\strtolower($segmentName))
+        {
+            case Query::SEGMENT_INTO:
+                if(!($this->tables[$segment] ?? false))
+                {
+                    // todo..
+                    throw new QueryMissingSegmentException('table bla unknown');
+                }
+                return $segment;
+                break;
+        }
+    }
+
     /**
      * @param Query $query
      * @throws QueryMissingSegmentException
@@ -105,12 +122,10 @@ class Db
         $select = $query->getSegment(Query::SEGMENT_SELECT);
         $from = $query->getSegment(Query::SEGMENT_FROM);
         $where = $query->getSegment(Query::SEGMENT_WHERE);
-
         if(null === $from)
         {
             throw new QueryMissingSegmentException();
         }
-
         /** @var ITable $table */
         $table = $this->tables[$from];
         return $table->fetch($where);
@@ -124,8 +139,7 @@ class Db
     protected function runInsert(Query $query)
     {
         $insert = $query->getSegment(Query::SEGMENT_INSERT);
-        $into = $query->getSegment(Query::SEGMENT_INTO);
-
+        $into = $this->getValidatedQuerySegment($query,Query::SEGMENT_INTO);
         if(null === $into)
         {
             throw new QueryMissingSegmentException();
@@ -162,7 +176,7 @@ class Db
             {
                 if(!isset($row[$key]))
                 {
-                    throw new RuntimeException('Field "' . $key . '" in update query is unknown.');
+                    throw new RunTimeException('Field "' . $key . '" in update query is unknown.');
                 }
                 $row[$key] = $value;
             }

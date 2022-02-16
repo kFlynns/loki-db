@@ -1,6 +1,6 @@
 <?php
 
-namespace LokiDb\Storage;
+namespace KFlynns\LokiDb\Storage;
 
 /**
  * Class Field

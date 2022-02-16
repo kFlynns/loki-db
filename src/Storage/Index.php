@@ -1,8 +1,9 @@
 <?php
 
-namespace LokiDb\Storage;
+namespace KFlynns\LokiDb\Storage;
 
 use GuzzleHttp\Psr7\Stream;
+use KFlynns\LokiDb\Exception\RunTimeException;
 
 /**
  * Class Index
@@ -23,12 +24,6 @@ class Index
     /** @var int */
     private $sort;
 
-    /** @var int */
-    private $lastIndex;
-
-    /** @var int */
-    private $sectorSize;
-
     /** @var Stream */
     private static $stream;
 
@@ -43,16 +38,13 @@ class Index
         $unique = false,
         $sort = self::SORT_ASC
     ) {
+        if($field->getByteLength() > 64)
+        {
+            throw new RunTimeException('An field that should be indexed can\'t be longer than 64 bytes.');
+        }
         $this->field = $field;
         $this->unique = $unique;
         $this->sort = $sort;
-        $this->lastIndex = pow(2, 4 * 8);
-
-        /** @var 1M per file sectorSize */
-        $this->sectorSize = 1 * 1024 * 1024;
-
-
-        //print_r($this->lastIndex);die();
     }
 
 
@@ -63,12 +55,14 @@ class Index
 
 
     /**
-     * @param IField $forField
+     * @param mixed $value
      * @param int $address
      */
-    public function write(IField $forField, $address)
+    public function write($value, $address)
     {
-
+        $path = str_split(hash('sha512', $value), 4);
+        print_r($path );
+        die();
     }
 
 

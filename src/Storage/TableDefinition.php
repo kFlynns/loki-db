@@ -1,8 +1,8 @@
 <?php
 
-namespace LokiDb\Storage;
+namespace KFlynns\LokiDb\Storage;
 
-use LokiDb\Exception\RunTimeException;
+use KFlynns\LokiDb\Exception\RunTimeException;
 
 /**
  * Class TableDefinition
@@ -41,7 +41,7 @@ class TableDefinition
         }
         if(!$foundPrimary)
         {
-            throw new RunTimeException('The table "'  .$tableName . '" need to define at least one primary key.');
+            //throw new RunTimeException('The table "'  .$tableName . '" need to define at least one primary key.');
         }
 
     }

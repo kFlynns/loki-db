@@ -1,22 +1,42 @@
 <?php
 
-use LokiDb\Db;
-use LokiDb\Query\Condition;
-use LokiDb\Storage\FieldDefinition;
-use LokiDb\Storage\Index;
-use LokiDb\Storage\TableDefinition;
+use KFlynns\LokiDb\Db;
+use KFlynns\LokiDb\Storage\Schema;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+$schema = new Schema(__DIR__ . '/data/test_schema-creation');
+$db = new Db($schema);
 
-$lokiDb = new Db(__DIR__ . '/test_db');
+for($i = 0; $i < 1; $i++)
+{
+    $db
+        ->createQuery()
+        ->insert([
+            'name' => 'janet',
+            'email' => 'janet@domain.tld',
+            'age' => rand(0, 100),
+            //'is_active' => false,
+        ])
+        ->into('uses')
+        ->execute();
+}
+
+
+/*
+$db
+    ->createQuery()
+    ->update('users')
+    ->set(['name' => 'karl'])
+    ->where(new Condition('age', '=', 1000))
+    ->execute();
+*/
+
+/*
+$lokiDb = new Db(__DIR__ . '/data');
 
 $table = new TableDefinition(
-    'users', [[
-        'field' => 'user_name',
-        'primary' => true,
-        'sort' => Index::SORT_DESC
-    ]]
+    'users', []
 );
 
 $table->addField(
@@ -35,48 +55,34 @@ $table->addField(
         FieldDefinition::DATA_TYPE_BOOL
     );
 
-$lokiDb->createTable($table);
+//$lokiDb->createTable($table);
 
 //$lokiDb->beginTransaction();
 
 
 /*
-$lokiDb
-    ->createQuery()
-    ->update('users')
-    ->set(['user_name' => 'karl'])
-    ->where(new Condition('age', '=', 1000))
-    ->execute();
+
 */
 
 
 /*
-for($i = 0; $i < 100; $i++)
-{
-    $lokiDb
-        ->createQuery()
-        ->insert([
-            'user_name' => 'janet',
-            'email' => 'janet@domain.tld',
-            'age' => rand(0, 100),
-            'is_active' => false,
-        ])
-        ->into('users')
-        ->execute();
-}
-*/
+
+
 
 //$lokiDb->createQuery()->delete()->from('users')->where(new Condition('age','>', 90))->execute();
 
 
 
-foreach ($lokiDb->createQuery()->select()->from('users')
-
-             ->where(
-                 new Condition('age','>', 10)
-             )
-
-             ->execute() as $row) {
+foreach (
+    $lokiDb
+        ->createQuery()
+        ->select()
+        ->from('users')
+        ->where(
+            new Condition('age','>', 98)
+        )
+        ->execute() as $row
+) {
     print_r($row);
 }
 
@@ -91,4 +97,4 @@ foreach ($lokiDb->createQuery()->select()->from('users')
 //$lokiDb->commit();
 
 
-
+*/

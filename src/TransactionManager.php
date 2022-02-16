@@ -1,9 +1,9 @@
 <?php
 
-namespace LokiDb;
+namespace KFlynns\LokiDb;
 
-use LokiDb\Exception\RunTimeException;
-use LokiDb\Storage\ITable;
+use KFlynns\LokiDb\Exception\RunTimeException;
+use KFlynns\LokiDb\Storage\ITable;
 
 
 /**
