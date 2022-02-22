@@ -28,10 +28,13 @@ class Condition
 
     /** @var mixed */
     private $left;
+
     /** @var mixed */
     private $right;
+
     /** @var mixed */
     private $operator;
+
     /** @var array  */
     private static $symbols = [];
 

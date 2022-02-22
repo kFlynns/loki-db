@@ -8,6 +8,9 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $schema = new Schema(__DIR__ . '/data/test_schema-creation');
 $db = new Db($schema);
 
+$db->beginTransaction();
+
+/*
 for($i = 0; $i < 1; $i++)
 {
     $db
@@ -16,12 +19,29 @@ for($i = 0; $i < 1; $i++)
             'name' => 'janet',
             'email' => 'janet@domain.tld',
             'age' => rand(0, 100),
-            //'is_active' => false,
         ])
-        ->into('uses')
+        ->into('users')
         ->execute();
 }
+*/
 
+
+foreach (
+    $db
+        ->createQuery()
+        ->select()
+        ->from('users')
+        ->where(new \KFlynns\LokiDb\Query\Condition(
+            'age',
+            \KFlynns\LokiDb\Query\Condition::GREATER_THEN,
+            40
+        ))
+        ->execute() as $row
+) {
+    print_r($row);
+}
+
+$db->rollBack();
 
 /*
 $db

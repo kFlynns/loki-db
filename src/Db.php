@@ -7,6 +7,7 @@ use KFlynns\LokiDb\Exception\RunTimeException;
 use KFlynns\LokiDb\Query\Query;
 use KFlynns\LokiDb\Storage\ISchema;
 use KFlynns\LokiDb\Storage\ITable;
+use KFlynns\LokiDb\Storage\Schema;
 use KFlynns\LokiDb\Storage\TableDefinition;
 
 /**
@@ -214,5 +215,14 @@ class Db
         return $this->{'run' . ucfirst($query->getMode())}($query) ?? [];
     }
 
+    /**
+     * Getter for $schema.
+     *
+     * @return Schema
+     */
+    public function getSchema(): Schema
+    {
+        return $this->schema;
+    }
 
 }

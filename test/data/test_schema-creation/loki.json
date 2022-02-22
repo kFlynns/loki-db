@@ -4,7 +4,7 @@
       "length": 128,
       "type": "string"
     },
-    "email":{
+    "email": {
       "length": 128,
       "type": "string"
     },
