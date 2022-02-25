@@ -144,13 +144,13 @@ class Query
 
 
     /**
-     * @return array
-     * @throws \Exception
+     * @return \Iterator|null
+     * @throws QueryMissingSegmentException
+     * @throws QueryNotCompleteException
      */
-    public function execute()
+    public function execute(): ?\Iterator
     {
         $setMode = function() {
-
             $exception = new QueryNotCompleteException();
             if(isset($this->segments[self::SEGMENT_SELECT]))
             {
@@ -191,7 +191,7 @@ class Query
         $setMode();
         if(!$this->mode)
         {
-            throw new QueryMissingSegmentException();
+            throw new QueryMissingSegmentException('The given query is incomplete.');
         }
         return $this->db->runQuery($this);
 

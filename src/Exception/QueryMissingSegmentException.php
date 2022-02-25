@@ -13,10 +13,11 @@ class QueryMissingSegmentException extends LokiDbException
     /**
      * QueryMissingSegmentException constructor.
      *
+     * @param string $segmentName
      * @param Throwable|null $previous
      */
-    public function __construct(Throwable $previous = null)
+    public function __construct(string $segmentName, Throwable $previous = null)
     {
-        parent::__construct('Missing segment in query.', $previous);
+        parent::__construct('Missing segment "' . $segmentName . '" in query.', $previous);
     }
 }

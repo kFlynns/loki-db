@@ -57,8 +57,6 @@ class Table implements ITable
     /** @var array */
     private $journal = [];
 
-    /** @var array  */
-    private $indices = [];
 
 
     /**
@@ -73,18 +71,15 @@ class Table implements ITable
      * @param string $tableName
      * @return ITable
      */
-    static public function create($tableName) : ITable
+    static public function create($tableName): ITable
     {
         $table = new self();
         $table->name = $tableName;
-        $table->uId = hash('md5', $table->name);
-        $table->diskFilePath = implode(
-                '/',
-                str_split(
-                    $table->uId,
-                    2
-                )
-            ) . '/lki';
+        $table->uId = TableUidGenerator::generate($tableName);
+        $table->diskFilePath = \implode(
+            '/',
+            \str_split($table->uId, 2)
+        ) . '/lki';
         return $table;
     }
 
@@ -99,7 +94,7 @@ class Table implements ITable
     /**
      * @param array[array] $data
      */
-    public function setDataRow(array $data) : void
+    public function setDataRow(array $data): void
     {
         $sortedRow = [];
 
@@ -163,18 +158,16 @@ class Table implements ITable
      * @param Condition|null $condition
      * @return Generator|void
      */
-    public function fetch(Condition $condition = null) : Generator
+    public function fetch(Condition $condition = null): Generator
     {
 
         $tableLength = $this->getTableLength();
         $this->stream->rewind();
         $this->datasetPointer = 0;
-
         do
         {
-
             if(isset($this->journal[$this->datasetPointer]))
-            {
+            {;
                 $dataRow = unpack(
                     $this->unpackDescriptor,
                     $this->journal[$this->datasetPointer]
@@ -184,7 +177,9 @@ class Table implements ITable
             {
                 $dataRow = $this->getDataRow();
             }
-
+            //print_r($dataRow);die();
+            yield $dataRow;
+            /*
             if($dataRow !== null)
             {
                 $matchCondition = true;
@@ -199,9 +194,11 @@ class Table implements ITable
                 {
                     yield $dataRow;
                 }
-            }
+            }*/
 
-            $this->stream->seek($this->datasetPointer += $this->rowLength);
+            $this
+                ->stream
+                ->seek($this->datasetPointer += $this->rowLength);
 
         } while ($tableLength > $this->datasetPointer);
 
@@ -311,42 +308,12 @@ class Table implements ITable
 
     }
 
-    /**
-     * @param array[Index] $indices
-     */
-    public function addIndices(array $indices)
-    {
-        foreach ($indices as $index)
-        {
-
-            $indexField = null;
-
-            /** @var IField $field */
-            foreach ($this->fields as $field)
-            {
-                if($field->getName() === $index['field'])
-                {
-                    $indexField = $field;
-                    break;
-                }
-            }
-
-            $this->indices[$field->getName()] = new Index(
-                $this->databaseFolder,
-                $this,
-                $indexField,
-                $index['unique'] ?? false,
-                $index['sort'] ?? Index::SORT_ASC
-            );
-        }
-
-    }
 
     /**
      * @param string $databaseFolder
      * @throws \Exception
      */
-    public function connectToDisk($databaseFolder)
+    public function connectToDisk($databaseFolder): void
     {
         $this->databaseFolder = $databaseFolder;
         $path = rtrim($databaseFolder, '/\\') . '/' . $this->diskFilePath;
@@ -384,14 +351,19 @@ class Table implements ITable
     }
 
 
-    public function lock() : void
+    public function lock(): void
     {
-        flock($this->fileResource, LOCK_EX);
+        \flock($this->fileResource, \LOCK_EX);
     }
 
-    public function unlock() : void
+    public function unlock(): void
     {
-        flock($this->fileResource, LOCK_UN);
+        \flock($this->fileResource, \LOCK_UN);
+    }
+
+    public function addIndices(array $indices)
+    {
+        // TODO: Implement addIndices() method.
     }
 
 }

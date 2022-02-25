@@ -27,9 +27,10 @@ class Stream implements StreamInterface
         }
         $this->resource = $resource;
         $this->metaData = \stream_get_meta_data($this->resource);
+
         $this->metaData['isReadable'] = \in_array(
             $this->metaData['mode'],
-            ['r', 'a+', 'ab+', 'w+', 'wb+', 'x+', 'xb+', 'c+', 'cb+']
+            ['r', 'r+', 'a+', 'ab+', 'w+', 'wb+', 'x+', 'xb+', 'c+', 'cb+']
         );
         $this->metaData['isWriteable'] = \in_array(
             $this->metaData['mode'],
@@ -239,7 +240,7 @@ class Stream implements StreamInterface
      * @param $key
      * @return mixed
      */
-    public function getMetadata($key = null): mixed
+    public function getMetadata($key = null)
     {
         return $this->metaData[$key] ?? null;
     }

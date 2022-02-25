@@ -2,6 +2,7 @@
 
 namespace KFlynns\LokiDb;
 
+use KFlynns\LokiDb\Exception\QueryFieldNotFoundException;
 use KFlynns\LokiDb\Exception\QueryMissingSegmentException;
 use KFlynns\LokiDb\Exception\QueryTableNotFoundException;
 use KFlynns\LokiDb\Exception\RunTimeException;
@@ -10,6 +11,7 @@ use KFlynns\LokiDb\Storage\ISchema;
 use KFlynns\LokiDb\Storage\ITable;
 use KFlynns\LokiDb\Storage\Schema;
 use KFlynns\LokiDb\Storage\TableDefinition;
+use KFlynns\LokiDb\Storage\TableUidGenerator;
 
 /**
  * Class Db
@@ -98,57 +100,74 @@ class Db
     protected function getValidatedQuerySegment(Query $query, string $segmentName)
     {
         $segment = $query->getSegment($segmentName);
-        if (!$segment)
+        if(null === $segment)
         {
-            return $segment;
+            throw new QueryMissingSegmentException($segmentName);
         }
+
         switch (\strtolower($segmentName))
         {
             case Query::SEGMENT_FROM:
             case Query::SEGMENT_INTO:
-                if(!($this->tables[ hash('md5', $segment)] ?? false))
+                $tableUId = TableUidGenerator::generate($segment);
+                if(!($this->tables[$tableUId] ?? false))
                 {
                     throw new QueryTableNotFoundException($segment);
                 }
+                return $tableUId;
+            case Query::SEGMENT_INSERT:
+                if (\count($segment) === 0)
+                {
+                    throw new RunTimeException('For inserting into table, there must be specified values.');
+                }
                 return $segment;
+
         }
         throw new \RuntimeException('The segment identifier "' . $segmentName .'" is unknown to die RDBMS.');
     }
 
     /**
      * @param Query $query
+     * @return \Generator
      * @throws QueryMissingSegmentException
+     * @throws QueryTableNotFoundException
+     * @throws RunTimeException
      */
-    protected function runSelect(Query $query)
+    protected function runSelect(Query $query): \Generator
     {
         $select = $query->getSegment(Query::SEGMENT_SELECT);
         $from = $this->getValidatedQuerySegment($query,Query::SEGMENT_FROM);
         $where = $query->getSegment(Query::SEGMENT_WHERE);
-        if(null === $from)
-        {
-            throw new QueryMissingSegmentException();
-        }
         /** @var ITable $table */
         $table = $this->tables[$from];
-        return $table->fetch($where);
-
+        return $table->fetch();
     }
 
     /**
      * @param Query $query
+     * @return void
      * @throws QueryMissingSegmentException
+     * @throws QueryTableNotFoundException
+     * @throws RunTimeException
      */
     protected function runInsert(Query $query)
     {
-        $insert = $query->getSegment(Query::SEGMENT_INSERT);
+        $insert = $this->getValidatedQuerySegment($query,Query::SEGMENT_INSERT);
         $into = $this->getValidatedQuerySegment($query,Query::SEGMENT_INTO);
-        if(null === $into)
-        {
-            throw new QueryMissingSegmentException();
-        }
-
         /** @var ITable $table */
         $table = $this->tables[$into];
+        $fields = $table->getFields();
+        /**
+         * @var string $field
+         * @var  mixed $value
+         */
+        foreach ($insert as $field => $value)
+        {
+            if (!\key_exists($field, $fields))
+            {
+                throw new QueryFieldNotFoundException($field);
+            }
+        }
         $this->transactionManager->addTable($table);
         $table->eof();
         $table->setDataRow($insert);
@@ -211,9 +230,9 @@ class Db
     /**
      * @param Query $query
      */
-    public function runQuery(Query $query)
+    public function runQuery(Query $query): ?\Iterator
     {
-        return $this->{'run' . ucfirst($query->getMode())}($query) ?? [];
+        return $this->{'run' . ucfirst($query->getMode())}($query) ?? null;
     }
 
     /**
