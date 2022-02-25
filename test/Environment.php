@@ -59,7 +59,7 @@ class Environment
      * @return Db
      * @throws \KFlynns\LokiDb\Exception\RunTimeException
      */
-    public function instantiateDatabase(array $schema): Db
+    public function getTempDatabase(array $schema): Db
     {
         $directory = __DIR__
             . '/data/'

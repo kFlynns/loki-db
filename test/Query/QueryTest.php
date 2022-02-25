@@ -21,7 +21,7 @@ class QueryTest extends TestCase
 
     public function testCreateSelectQuery(): void
     {
-        $db = $this->environment->instantiateDatabase([
+        $db = $this->environment->getTempDatabase([
             'test' => [
                 'field' => [
                     'type' => 'string',
