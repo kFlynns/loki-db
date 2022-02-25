@@ -12,12 +12,14 @@ class QueryMixedStatementException extends LokiDbException
 {
     /**
      * QueryMixedStatementException constructor.
-     * @param string $message
-     * @param int $code
+     *
      * @param Throwable|null $previous
      */
-    public function __construct($message = "", $code = 0, Throwable $previous = null)
+    public function __construct(Throwable $previous = null)
     {
-        parent::__construct('Mixed INSERT, SELECT, UPDATE and/or DELETE statements in one query.', '001', $previous);
+        parent::__construct(
+            'Mixed INSERT, SELECT, UPDATE and/or DELETE statements in one query.',
+            $previous
+        );
     }
 }

@@ -78,7 +78,7 @@ class Query
      */
     public function from($tableName) : Query
     {
-        $this->segments[self::SEGMENT_FROM] = hash('md5', $tableName);
+        $this->segments[self::SEGMENT_FROM] = $tableName;
         return $this;
     }
 
@@ -98,7 +98,7 @@ class Query
      */
     public function into($tableName) : Query
     {
-        $this->segments[self::SEGMENT_INTO] = hash('md5', $tableName);
+        $this->segments[self::SEGMENT_INTO] = $tableName;
         return $this;
     }
 
@@ -108,7 +108,7 @@ class Query
      */
     public function update($tableName) : Query
     {
-        $this->segments[self::SEGMENT_UPDATE] = hash('md5', $tableName);
+        $this->segments[self::SEGMENT_UPDATE] = $tableName;
         return $this;
     }
 

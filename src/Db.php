@@ -3,6 +3,7 @@
 namespace KFlynns\LokiDb;
 
 use KFlynns\LokiDb\Exception\QueryMissingSegmentException;
+use KFlynns\LokiDb\Exception\QueryTableNotFoundException;
 use KFlynns\LokiDb\Exception\RunTimeException;
 use KFlynns\LokiDb\Query\Query;
 use KFlynns\LokiDb\Storage\ISchema;
@@ -103,15 +104,15 @@ class Db
         }
         switch (\strtolower($segmentName))
         {
+            case Query::SEGMENT_FROM:
             case Query::SEGMENT_INTO:
-                if(!($this->tables[$segment] ?? false))
+                if(!($this->tables[ hash('md5', $segment)] ?? false))
                 {
-                    // todo..
-                    throw new QueryMissingSegmentException('table bla unknown');
+                    throw new QueryTableNotFoundException($segment);
                 }
                 return $segment;
-                break;
         }
+        throw new \RuntimeException('The segment identifier "' . $segmentName .'" is unknown to die RDBMS.');
     }
 
     /**
@@ -121,7 +122,7 @@ class Db
     protected function runSelect(Query $query)
     {
         $select = $query->getSegment(Query::SEGMENT_SELECT);
-        $from = $query->getSegment(Query::SEGMENT_FROM);
+        $from = $this->getValidatedQuerySegment($query,Query::SEGMENT_FROM);
         $where = $query->getSegment(Query::SEGMENT_WHERE);
         if(null === $from)
         {
@@ -189,7 +190,7 @@ class Db
 
     public function runDelete(Query $query)
     {
-        $from = $query->getSegment(Query::SEGMENT_FROM);
+        $from = $this->getValidatedQuerySegment($query, Query::SEGMENT_FROM);
         $where = $query->getSegment(Query::SEGMENT_WHERE);
 
         if(null === $from)

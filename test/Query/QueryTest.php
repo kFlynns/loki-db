@@ -19,18 +19,22 @@ class QueryTest extends TestCase
     }
 
 
-    public function testCreateSelectQuery(): void
+    public function testSelectFromNotExistingTable(): void
     {
         $db = $this->environment->getTempDatabase([
-            'test' => [
+            'table' => [
                 'field' => [
                     'type' => 'string',
                     'length' => 16
                 ]
             ]
         ]);
+        $this->expectExceptionMessage('The table "NON_EXISTENT" is unknown.');
+        $db
+            ->createQuery()
+            ->select(['field'])
+            ->from('NON_EXISTENT')
+            ->execute();
     }
-
-
 
 }
