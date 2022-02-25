@@ -3,7 +3,7 @@
 namespace KFlynns\LokiDb\Storage;
 
 use Generator;
-use GuzzleHttp\Psr7\Stream;
+use KFlynns\LokiDb\Psr7\Stream;
 use KFlynns\LokiDb\Exception\RunTimeException;
 use KFlynns\LokiDb\Query\Condition;
 use KFlynns\LokiDb\TransactionManager;

@@ -2,7 +2,7 @@
 
 namespace KFlynns\LokiDb\Storage;
 
-use GuzzleHttp\Psr7\Stream;
+use KFlynns\LokiDb\Psr7\Stream;
 use KFlynns\LokiDb\Exception\RunTimeException;
 
 /**
