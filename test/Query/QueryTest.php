@@ -133,7 +133,7 @@ class QueryTest extends TestCase
             ->from('table')
             ->execute()->current()
         );
-        
+
     }
 
 }

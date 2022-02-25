@@ -177,9 +177,6 @@ class Table implements ITable
             {
                 $dataRow = $this->getDataRow();
             }
-            //print_r($dataRow);die();
-            yield $dataRow;
-            /*
             if($dataRow !== null)
             {
                 $matchCondition = true;
@@ -194,8 +191,7 @@ class Table implements ITable
                 {
                     yield $dataRow;
                 }
-            }*/
-
+            }
             $this
                 ->stream
                 ->seek($this->datasetPointer += $this->rowLength);
