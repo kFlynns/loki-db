@@ -3,5 +3,8 @@
         <testsuite name="DbTest">
             <file>./test/DbTest.php</file>
         </testsuite>
+        <testsuite name="QueryTest">
+            <file>./test/Query/QueryTest.php</file>
+        </testsuite>
     </testsuites>
 </phpunit>
