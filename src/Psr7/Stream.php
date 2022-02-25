@@ -172,17 +172,23 @@ class Stream implements StreamInterface
         return $this->getMetadata('isWriteable');
     }
 
-    public function write($string)
+    /**
+     * @param $string
+     * @return int
+     */
+    public function write($string): int
     {
         if ($this->resource === null || !$this->isWritable())
         {
             throw new \RuntimeException(self::class . ': the stream was detached or is not writeable.');
         }
-        if( false === \fwrite($this->resource, $string))
+        $result = \fwrite($this->resource, $string);
+        if( false === $result)
         {
             throw new \RuntimeException(self::class . ': failed to write in the stream.');
         }
         $this->size = -1;
+        return $result;
     }
 
     /**
