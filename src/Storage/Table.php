@@ -184,6 +184,10 @@ class Table implements ITable
                 {
                     $testCondition = clone $condition;
                     $matchCondition = (bool)$testCondition->solve(function($fieldName) use ($dataRow) {
+                        if (null === ($dataRow[$fieldName] ?? null))
+                        {
+                            throw new RuntimeException('Field "' . $fieldName . '" in condition is unknown.');
+                        }
                         return $dataRow[$fieldName];
                     });
                 }
@@ -300,7 +304,7 @@ class Table implements ITable
         }
 
         $this->emptyRow = str_repeat(hex2bin('00'), $this->rowLength);
-        $this->unpackDescriptor =  rtrim($this->unpackDescriptor, '/');
+        $this->unpackDescriptor = rtrim($this->unpackDescriptor, '/');
 
     }
 

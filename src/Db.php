@@ -109,6 +109,7 @@ class Db
         {
             case Query::SEGMENT_FROM:
             case Query::SEGMENT_INTO:
+            case Query::MODE_UPDATE:
                 $tableUId = TableUidGenerator::generate($segment);
                 if(!($this->tables[$tableUId] ?? false))
                 {
@@ -116,9 +117,10 @@ class Db
                 }
                 return $tableUId;
             case Query::SEGMENT_INSERT:
+            case Query::SEGMENT_SET:
                 if (\count($segment) === 0)
                 {
-                    throw new RunTimeException('For inserting into table, there must be specified values.');
+                    throw new RunTimeException('For inserting or updating a table, there must be specified fields.');
                 }
                 return $segment;
 
@@ -179,15 +181,19 @@ class Db
     public function runUpdate(Query $query)
     {
 
-        $update = $query->getSegment(Query::SEGMENT_UPDATE);
-        $set = $query->getSegment(Query::SEGMENT_SET);
+        $update = $this->getValidatedQuerySegment($query, Query::SEGMENT_UPDATE);
+        $set = $this->getValidatedQuerySegment($query, Query::SEGMENT_SET);
         $where = $query->getSegment(Query::SEGMENT_WHERE);
 
-        if(null === $update || null === $set)
+        /** @var array $tableFields */
+        $tableFields = \array_keys($this->tables[$update]->getFields());
+        foreach (\array_keys($set) as $fieldName)
         {
-            throw new QueryMissingSegmentException();
+            if (!\in_array($fieldName, $tableFields))
+            {
+                throw new QueryFieldNotFoundException($fieldName);
+            }
         }
-
         /** @var ITable $table */
         $table = $this->tables[$update];
         $this->transactionManager->addTable($table);
@@ -195,10 +201,6 @@ class Db
         {
             foreach ($set as $key => $value)
             {
-                if(!isset($row[$key]))
-                {
-                    throw new RunTimeException('Field "' . $key . '" in update query is unknown.');
-                }
                 $row[$key] = $value;
             }
             $table->setDataRow($row);

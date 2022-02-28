@@ -26,12 +26,11 @@ class Environment
         /** @var string $file */
         foreach($files as $file)
         {
-            if (!\is_dir($file) || \substr($file, 0, 1) === '.')
-            {
-                continue;
-            }
-            if (\preg_match('/_[a-z0-9]{8}$/', $file) !== 1)
-            {
+            if (
+                !\is_dir($file) ||
+                \substr($file, 0, 1) === '.' ||
+                \preg_match('/_[a-z0-9]{8}$/', $file) !== 1
+            ) {
                 continue;
             }
             $this->delTree($file);

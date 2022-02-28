@@ -99,9 +99,7 @@ class Condition
      */
     public function solve(callable $callback = null)
     {
-
         $this->resolveSymbols($callback);
-
         switch($this->operator)
         {
             case self::EQUAL:

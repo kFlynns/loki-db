@@ -67,7 +67,7 @@ class QueryTest extends TestCase
                 ]
             ]
         ]);
-        $this->expectExceptionMessage('For inserting into table, there must be specified values.');
+        $this->expectExceptionMessage('For inserting or updating a table, there must be specified fields.');
         $db
             ->createQuery()
             ->insert([])
@@ -99,6 +99,9 @@ class QueryTest extends TestCase
     {
         $db = $this->environment->getTempDatabase([
             'table' => [
+                'char' => [
+                    'type' => 'char'
+                ],
                 'string' => [
                     'type' => FieldDefinition::DATA_TYPE_STRING,
                     'length' => 16
@@ -113,9 +116,13 @@ class QueryTest extends TestCase
                 // todo
             ]
         ]);
+
+
+
         $db
             ->createQuery()
             ->insert([
+                'char' => 300, // overflow -> test if 300 mod 256 == 44
                 'string' => 'test value $%&/',
                 'integer' => -100,
                 'boolean' => true
@@ -124,6 +131,7 @@ class QueryTest extends TestCase
             ->execute();
 
         $this->assertEquals([
+            'char' => 44,
             'string' => 'test value $%&/',
             'integer' => -100,
             'boolean' => true
@@ -131,8 +139,11 @@ class QueryTest extends TestCase
             ->createQuery()
             ->select()
             ->from('table')
-            ->execute()->current()
+            ->execute()
+            ->current()
         );
+
+
 
     }
 
